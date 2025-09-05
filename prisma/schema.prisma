@@ -1,0 +1,118 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                String        @id @default(uuid())
+  email             String        @unique
+  name              String
+  password          String
+  isActive          Boolean       @default(true)
+  profilePictureUrl String?
+  role              Role          @relation(fields: [roleId], references: [id])
+  roleId            String
+  createdCourses    Course[]
+  createdCodes      Course_Code[] @relation("InstructorCodes")
+  usedCodes         Course_Code[] @relation("StudentUsedCodes")
+  enrollments       Enrollment[]
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime?     @updatedAt
+}
+
+model Role {
+  id        String    @id @default(uuid())
+  name      UserRole  @unique
+  users     User[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime? @updatedAt
+}
+
+model Course {
+  id           String        @id @default(uuid())
+  title        String
+  description  String
+  thumbnailUrl String?
+  price        Float
+  category     Category      @relation(fields: [categoryId], references: [id])
+  categoryId   String
+  instructor   User          @relation(fields: [instructorId], references: [id])
+  instructorId String
+  createdCodes Course_Code[]
+  enrollments  Enrollment[]
+  sections     Section[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime?     @updatedAt
+}
+
+model Course_Code {
+  id           String    @id @default(uuid())
+  code         String    @unique
+  isUsed       Boolean   @default(false)
+  usedAt       DateTime?
+  expireAt     DateTime
+  isValid      Boolean   @default(true)
+  instructor   User      @relation("InstructorCodes", fields: [instructorId], references: [id])
+  instructorId String
+  student      User?     @relation("StudentUsedCodes", fields: [studentId], references: [id])
+  studentId    String?
+  course       Course?   @relation(fields: [courseUsedId], references: [id])
+  courseUsedId String?
+  createdAt    DateTime  @default(now())
+}
+
+model Category {
+  id        String    @id @default(uuid())
+  name      String    @unique
+  courses   Course[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime? @updatedAt
+}
+
+model Section {
+  id         String    @id @default(uuid())
+  name       String
+  orderIndex Int
+  course     Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  courseId   String
+  lessons    Lesson[]
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime? @updatedAt
+}
+
+model Lesson {
+  id          String      @id @default(uuid())
+  name        String
+  contentType ContentType
+  contentUrl  String
+  orderIndex  Int
+  section     Section     @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  sectionId   String
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime?   @updatedAt
+}
+
+model Enrollment {
+  enrollmentDate DateTime @default(now())
+  user           User     @relation(fields: [userId], references: [id])
+  userId         String
+  course         Course   @relation(fields: [courseId], references: [id])
+  courseId       String
+
+  @@id([userId, courseId])
+}
+
+enum UserRole {
+  USER
+  INSTRUCTOR
+  ADMIN
+}
+
+enum ContentType {
+  PDF
+  VIDEO
+}
