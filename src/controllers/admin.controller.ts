@@ -1,0 +1,168 @@
+import {UserRole} from "@prisma/client";
+import {UserRepository} from "../repositories/user.repository.ts";
+import {asyncWrapper} from "../middlwares/asyncWrapper.ts";
+import {AuthenticatedRequest} from "../types/authenticated-request";
+import {NextFunction, Response as ExpressResponse} from "express";
+import {ErrorResponse} from "../dto/error.response.ts";
+import {HttpStatus} from "../utils/httpStatusText.ts";
+import {AppError} from "../utils/appError.ts";
+import {ApiResponse} from "../dto/api.response.ts";
+import {UserResponse} from "../dto/user.response.ts";
+import {toUserResponse} from "../mapper/user.mapper.ts";
+import {RoleRepository} from "../repositories/role.repository.ts";
+import {prisma} from "../config/dbConnection.ts";
+import {handleValidationErrors} from "../utils/handleValidationErrors.ts";
+
+const userRepository: UserRepository = new UserRepository(prisma);
+const roleRepository: RoleRepository = new RoleRepository(prisma);
+
+export const getUsersByRole = asyncWrapper(
+    async (req: AuthenticatedRequest, res: ExpressResponse, next: NextFunction) => {
+        const errors: false | AppError = handleValidationErrors(req);
+        if (errors) {
+            return next(errors);
+        }
+
+        const queryParams = req.query;
+
+        const userRole = String(queryParams.role).toUpperCase();
+        if (!Object.values(UserRole).includes(userRole as UserRole)) {
+            const errorResponse: ErrorResponse = {
+                status: HttpStatus.FAIL,
+                message: "User role not found",
+                data: null
+            };
+            const error: AppError = new AppError(errorResponse, 404);
+            return next(error);
+        }
+
+        const size: number = Number(queryParams.size) || 8;
+        const page: number = Number(queryParams.page) || 1;
+        const skip = (page - 1) * size;
+
+        const users = await userRepository.findUsersByRole(userRole as UserRole, size, skip);
+
+        const apiResponse: ApiResponse<{ users: UserResponse[] }> = {
+            status: HttpStatus.SUCCESS,
+            data: {
+                users: users.map(toUserResponse)
+            }
+        };
+        return res.status(200).json(apiResponse);
+    }
+);
+
+export const getUserByEmail = asyncWrapper(
+    async (req: AuthenticatedRequest, res: ExpressResponse, next: NextFunction) => {
+        const savedUser = await userRepository.findUserByEmail(String(req.query.email));
+        if (!savedUser) {
+            const errorResponse: ErrorResponse = {
+                status: HttpStatus.FAIL,
+                message: "User not found",
+                data: null
+            };
+            const error: AppError = new AppError(errorResponse, 404);
+            return next(error);
+        }
+
+        const apiResponse: ApiResponse<{ user: UserResponse }> = {
+            status: HttpStatus.SUCCESS,
+            data: {
+                user: toUserResponse(savedUser)
+            }
+        };
+        return res.status(200).json(apiResponse);
+    }
+);
+
+export const changeUserRole = asyncWrapper(
+    async (req: AuthenticatedRequest, res: ExpressResponse, next: NextFunction) => {
+        const errors: false | AppError = handleValidationErrors(req);
+        if (errors) {
+            return next(errors);
+        }
+
+        const newRole = String(req.body.role).toUpperCase();
+
+        if (!Object.values(UserRole).includes(newRole as UserRole)) {
+            const errorResponse: ErrorResponse = {
+                status: HttpStatus.FAIL,
+                message: "User role not found",
+                data: null
+            };
+            const error: AppError = new AppError(errorResponse, 404);
+            return next(error);
+        }
+        const roleId = (await roleRepository.findRoleByName(newRole as UserRole))?.id || '';
+
+        const user = await userRepository.findUserById(String(req.params.id));
+
+        if (!user) {
+            const errorResponse: ErrorResponse = {
+                status: HttpStatus.FAIL,
+                message: "User not found",
+                data: null
+            };
+            const error: AppError = new AppError(errorResponse, 404);
+            return next(error);
+        }
+
+        const connectedUser = JSON.parse(JSON.stringify(req.connectedUser));
+        if (connectedUser.id === user.id) {
+            const errorResponse: ErrorResponse = {
+                status: HttpStatus.FAIL,
+                message: "You cannot change role your own account"
+            };
+            const error: AppError = new AppError(errorResponse, 403);
+            return next(error);
+        }
+
+        const updatedUser = await userRepository.changeUserRole(user.id, roleId);
+
+        const apiResponse: ApiResponse<{ user: UserResponse }> = {
+            status: HttpStatus.SUCCESS,
+            data: {
+                user: toUserResponse(updatedUser)
+            }
+        };
+        return res.status(200).json(apiResponse);
+    }
+);
+
+export const toggleUserActivation = asyncWrapper(
+    async (req: AuthenticatedRequest, res: ExpressResponse, next: NextFunction) => {
+        const userId = req.params.id;
+
+        const savedUser = await userRepository.findUserById(userId);
+        if (!savedUser) {
+            const errorResponse: ErrorResponse = {
+                status: HttpStatus.FAIL,
+                message: "User not found",
+                data: null
+            };
+            const error: AppError = new AppError(errorResponse, 404);
+            return next(error);
+        }
+
+        const connectedUser = JSON.parse(JSON.stringify(req.connectedUser));
+        if (connectedUser.id === userId) {
+            const errorResponse: ErrorResponse = {
+                status: HttpStatus.ERROR,
+                message: "You cannot deactivate your own account",
+                data: null
+            };
+            const error: AppError = new AppError(errorResponse, 403);
+            return next(error);
+        }
+
+        const updatedUser = await userRepository.updateUserProfile(userId, {isActive: !savedUser.isActive});
+
+        const apiResponse: ApiResponse<{ user: UserResponse }> = {
+            status: HttpStatus.SUCCESS,
+            data: {
+                user: toUserResponse(updatedUser)
+            }
+        };
+        return res.status(200).json(apiResponse);
+    }
+);

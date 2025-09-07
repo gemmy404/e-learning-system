@@ -62,4 +62,67 @@ export class UserRepository {
         return savedUser;
     }
 
+    async findUsersByRole(role: UserRole, take: number, skip: number) {
+        const users = await this.prisma.user.findMany({
+            where: {
+                role: {
+                    name: role
+                }
+            },
+            include: {
+                role: {
+                    select: {name: true}
+                }
+            },
+            omit: {
+                password: true
+            },
+            take,
+            skip
+        });
+        return users;
+    }
+
+    async updateUserProfile(userId: string, profile: any) {
+        const updatedUser = await this.prisma.user.update({
+            where: {
+                id: userId
+            },
+            data: {
+                name: profile?.name,
+                profilePictureUrl: profile?.profilePictureUrl,
+                isActive: profile?.isActive
+            },
+            include: {
+                role: {
+                    select: {name: true}
+                }
+            },
+            omit: {
+                password: true
+            }
+        });
+        return updatedUser;
+    }
+
+    async changeUserRole(userId: string, roleId: string) {
+        const updatedUser = await this.prisma.user.update({
+            where: {
+                id: userId
+            },
+            data: {
+                roleId: roleId
+            },
+            include: {
+                role: {
+                    select: {name: true}
+                }
+            },
+            omit: {
+                password: true
+            }
+        });
+        return updatedUser;
+    }
+
 }
