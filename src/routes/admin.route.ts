@@ -9,6 +9,7 @@ import {paginateValidations, userRoleValidations} from "../middlwares/validation
 export const router = express.Router();
 
 router.route('/roles')
+    .get(verifyToken, allowTo(UserRole.ADMIN), paginateValidations, roleController.getAllRoles)
     .post(verifyToken, allowTo(UserRole.ADMIN), userRoleValidations, roleController.createRole);
 
 router.route('/users')

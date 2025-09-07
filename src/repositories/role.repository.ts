@@ -1,4 +1,4 @@
-import {PrismaClient, Role, UserRole} from "@prisma/client";
+import {PrismaClient, UserRole} from "@prisma/client";
 
 export class RoleRepository {
     private prisma: PrismaClient;
@@ -26,6 +26,14 @@ export class RoleRepository {
             where: {name}
         });
         return saveRole;
+    }
+
+    async findAllRoles(take: number, skip: number) {
+        const roles = await this.prisma.role.findMany({
+            take,
+            skip
+        });
+        return roles;
     }
 
 }
