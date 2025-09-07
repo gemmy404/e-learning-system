@@ -2,6 +2,7 @@ import express from 'express';
 import dotenv from 'dotenv';
 import {connectDb} from "./config/dbConnection.ts";
 import {router as authRouter} from './routes/auth.route';
+import {router as courseRouter} from './routes/course.route';
 import {errorHandler} from './middlwares/errorHandler';
 import {notFoundResource} from './middlwares/notFoundResource';
 
@@ -12,6 +13,7 @@ const port = process.env.PORT || 5000;
 app.use(express.json());
 
 app.use('/api/auth', authRouter);
+app.use('/api/courses', courseRouter);
 
 app.use(notFoundResource);
 app.use(errorHandler);
