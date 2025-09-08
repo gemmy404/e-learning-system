@@ -12,21 +12,16 @@ import {RoleRepository} from "../repositories/role.repository.ts";
 import type {NextFunction, Request, Response as ExpressResponse} from 'express';
 import {ApiResponse} from "../dto/api.response.ts";
 import {prisma} from "../config/dbConnection.ts";
+import {handleValidationErrors} from "../utils/handleValidationErrors.ts";
 
 const userRepository = new UserRepository(prisma);
 const roleRepository = new RoleRepository(prisma);
 
 export const register = asyncWrapper(
     async (req: Request, res: ExpressResponse, next: NextFunction) => {
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            const errorResponse: ErrorResponse = {
-                status: HttpStatus.FAIL,
-                validationErrors: errors.array(),
-                data: null
-            };
-            const error: AppError = new AppError(errorResponse, 400);
-            return next(error);
+        const errors: false | AppError = handleValidationErrors(req);
+        if (errors) {
+            return next(errors);
         }
 
         const user = req.body;
@@ -53,15 +48,9 @@ export const register = asyncWrapper(
 
 export const login = asyncWrapper(
     async (req: Request, res: ExpressResponse, next: NextFunction) => {
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            const errorResponse: ErrorResponse = {
-                status: HttpStatus.FAIL,
-                validationErrors: errors.array(),
-                data: null
-            };
-            const error: AppError = new AppError(errorResponse, 400);
-            return next(error);
+        const errors: false | AppError = handleValidationErrors(req);
+        if (errors) {
+            return next(errors);
         }
 
         const savedUser = await userRepository.findUserByEmail(req.body.email);
