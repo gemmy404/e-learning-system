@@ -125,4 +125,16 @@ export class UserRepository {
         return updatedUser;
     }
 
+    async changeUserPassword(userId: string, newPassword: string) {
+        const updatedUser = await this.prisma.user.update({
+            where: {
+                id: userId
+            },
+            data: {
+                password: newPassword
+            }
+        });
+        return updatedUser;
+    }
+
 }
