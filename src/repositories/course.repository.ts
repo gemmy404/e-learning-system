@@ -7,7 +7,7 @@ export class CourseRepository {
         this.prisma = prismaClient;
     }
 
-    async createCourse(course: Course) {
+    async createCourse(course: any) {
         const createdCourse = await this.prisma.course.create({
             data: course,
         });

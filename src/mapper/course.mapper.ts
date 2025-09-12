@@ -12,11 +12,13 @@ export const toCourseResponse = (course: any): CourseResponse => {
     };
 };
 
-export const toCourse = (course: any) => {
+export const toCourse = (course: any, file: any) => {
     return {
         title: course.title,
         description: course.description,
+        thumbnailUrl: file?.path,
         price: Number(course.price) || undefined,
-        thumbnailUrl: course.thumbnailUrl
-    }
+        categoryId: course.categoryId,
+        instructorId: course.instructorId,
+    };
 };
