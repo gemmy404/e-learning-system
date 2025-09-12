@@ -1,4 +1,4 @@
-import {PrismaClient} from "@prisma/client";
+import {Course_Code, PrismaClient} from "@prisma/client";
 
 export class CodeRepository {
     private prisma: PrismaClient;
@@ -44,6 +44,25 @@ export class CodeRepository {
             data: {
                 isValid: false
             }
+        });
+        return result;
+    }
+
+    async findCode(enrollCode: string) {
+        const code = await this.prisma.course_Code.findUnique({
+            where: {
+                code: enrollCode,
+            }
+        });
+        return code;
+    }
+
+    async updateCode(updatedCode: Course_Code) {
+        const result = await this.prisma.course_Code.update({
+            where: {
+                id: updatedCode.id
+            },
+            data: updatedCode
         });
         return result;
     }

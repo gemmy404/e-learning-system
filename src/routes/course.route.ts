@@ -1,6 +1,7 @@
 import express from 'express';
 import * as courseController from '../controllers/course.controller';
-import {paginateValidations} from '../middlwares/validationSchema';
+import {enrollCourseValidations, paginateValidations} from '../middlwares/validationSchema';
+import {verifyToken} from "../middlwares/verifyToken.ts";
 
 export const router = express.Router();
 
@@ -15,3 +16,6 @@ router.route('/category')
 
 router.route('/:id')
     .get(courseController.getCourseById);
+
+router.route('/:id/enroll')
+    .post(verifyToken, enrollCourseValidations, courseController.enrollCourse);

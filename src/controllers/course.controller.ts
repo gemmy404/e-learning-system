@@ -10,8 +10,12 @@ import {ApiResponse} from '../dto/api.response';
 import {toCourseResponse} from '../mapper/course.mapper';
 import {prisma} from "../config/dbConnection.ts";
 import {handleValidationErrors} from "../utils/handleValidationErrors.ts";
+import {EnrollmentRepository} from "../repositories/enrollment.repository.ts";
+import {CodeRepository} from "../repositories/code.repository.ts";
 
 const courseRepository = new CourseRepository(prisma);
+const enrollmentRepository = new EnrollmentRepository(prisma);
+const codeRepository = new CodeRepository(prisma);
 
 export const getAllCourses = asyncWrapper(
     async (req: AuthenticatedRequest, res: ExpressResponse, next: NextFunction) => {
@@ -130,5 +134,97 @@ export const filterCourseByCategory = asyncWrapper(
             }
         };
         return res.status(200).json(apiResponse);
+    }
+);
+
+export const enrollCourse = asyncWrapper(
+    async (req: AuthenticatedRequest, res: ExpressResponse, next: NextFunction) => {
+        const errors: false | AppError = handleValidationErrors(req);
+        if (errors) {
+            return next(errors);
+        }
+
+        const courseId = req.params.id;
+
+        const course = await courseRepository.findCourseById(courseId);
+        if (!course) {
+            const errorResponse: ErrorResponse = {
+                status: HttpStatus.FAIL,
+                message: `Course with id ${courseId} not found`,
+                data: null
+            };
+            const error: AppError = new AppError(errorResponse, 404);
+            return next(error);
+        }
+
+        const connectUser = JSON.parse(JSON.stringify(req.connectedUser));
+        if (await enrollmentRepository.findEnrolledCourseByStudentIdAndCourseId(connectUser.id, courseId)) {
+            const errorResponse: ErrorResponse = {
+                status: HttpStatus.FAIL,
+                message: "You already enrolled this course",
+                data: null
+            };
+            const error: AppError = new AppError(errorResponse, 400);
+            return next(error);
+        }
+
+        const enrollCode = req.body.enrollCode;
+
+        const savedCode = await codeRepository.findCode(enrollCode)
+        if (!savedCode) {
+            const errorResponse: ErrorResponse = {
+                status: HttpStatus.FAIL,
+                message: `The code ${enrollCode} that you've entered is incorrect`,
+                data: null
+            };
+            const error: AppError = new AppError(errorResponse, 404);
+            return next(error);
+        }
+
+        if (savedCode.instructorId !== course.instructorId) {
+            const errorResponse: ErrorResponse = {
+                status: HttpStatus.FAIL,
+                message: "Invalid enrollment code for this course",
+                data: null
+            };
+            const error: AppError = new AppError(errorResponse, 400);
+            return next(error);
+        }
+
+        if (Date.now() > savedCode.expireAt.getTime() || !savedCode.isValid) {
+            const errorResponse: ErrorResponse = {
+                status: HttpStatus.FAIL,
+                message: `Code ${enrollCode} is not valid`,
+                data: null
+            };
+            const error: AppError = new AppError(errorResponse, 400);
+            return next(error);
+        }
+
+        const enrollRequest = {
+            courseId: courseId,
+            userId: connectUser.id,
+            enrollmentDate: new Date(),
+        };
+
+        const enrolledCourse = await enrollmentRepository.createEnrollment(enrollRequest);
+
+        savedCode.isValid = false;
+        savedCode.isUsed = true;
+        savedCode.usedAt = new Date();
+        savedCode.courseUsedId = course.id;
+        savedCode.studentId = connectUser.id;
+
+        await codeRepository.updateCode(savedCode);
+
+        const apiResponse: ApiResponse<{ course: CourseResponse }> = {
+            status: HttpStatus.SUCCESS,
+            data: {
+                course: {
+                    id: enrolledCourse.courseId
+                }
+            }
+        };
+        return res.status(201).json(apiResponse);
     }
 );
