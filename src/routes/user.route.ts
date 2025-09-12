@@ -2,7 +2,7 @@ import express from 'express';
 import {verifyToken} from "../middlwares/verifyToken";
 import * as userController from '../controllers/user.controller'
 import {upload} from "../utils/uploadFile.ts";
-import {changePasswordValidations} from "../middlwares/validationSchema.ts";
+import {changePasswordValidations, paginateValidations} from "../middlwares/validationSchema.ts";
 
 export const router = express.Router();
 
@@ -12,3 +12,6 @@ router.route('/profile')
 
 router.route('/change-password')
     .patch(verifyToken, changePasswordValidations, userController.changePassword);
+
+router.route('/me/enrollments')
+    .get(verifyToken, paginateValidations, userController.getMyEnrollmentCourses);

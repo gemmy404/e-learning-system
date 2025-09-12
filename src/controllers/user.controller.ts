@@ -11,8 +11,12 @@ import {toUserResponse} from "../mapper/user.mapper.ts";
 import bcrypt from "bcryptjs";
 import {prisma} from "../config/dbConnection.ts";
 import {handleValidationErrors} from "../utils/handleValidationErrors.ts";
+import {CourseResponse} from "../dto/course.response.ts";
+import {toCourseResponse} from "../mapper/course.mapper.ts";
+import {EnrollmentRepository} from "../repositories/enrollment.repository.ts";
 
 const userRepository: UserRepository = new UserRepository(prisma);
+const enrollmentRepository = new EnrollmentRepository(prisma);
 
 export const getUserProfile = asyncWrapper(
     async (req: AuthenticatedRequest, res: ExpressResponse, next: NextFunction) => {
@@ -113,5 +117,33 @@ export const changePassword = asyncWrapper(
             }
         };
         return res.status(200).json(apiResponse);
+    }
+);
+
+export const getMyEnrollmentCourses = asyncWrapper(
+    async (req: AuthenticatedRequest, res: ExpressResponse, next: NextFunction) => {
+        const errors: false | AppError = handleValidationErrors(req);
+        if (errors) {
+            return next(errors);
+        }
+
+        const queryParams = req.query;
+
+        const size: number = Number(queryParams.size) || 8;
+        const page: number = Number(queryParams.page) || 1;
+        const skip = (page - 1) * size;
+        const connectedUser = JSON.parse(JSON.stringify(req.connectedUser));
+
+        const courses = (await enrollmentRepository
+            .findAllEnrolledCourseByStudentId(size, skip, connectedUser.id))
+            .map(enrollments => enrollments.course);
+
+        const apiResponse: ApiResponse<{ courses: CourseResponse[] }> = {
+            status: HttpStatus.SUCCESS,
+            data: {
+                courses: courses.map(toCourseResponse)
+            }
+        };
+        res.status(200).json(apiResponse);
     }
 );
