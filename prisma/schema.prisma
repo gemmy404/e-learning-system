@@ -8,20 +8,21 @@ datasource db {
 }
 
 model User {
-  id                String        @id @default(uuid())
-  email             String        @unique
+  id                String                @id @default(uuid())
+  email             String                @unique
   name              String
   password          String
-  isActive          Boolean       @default(true)
+  isActive          Boolean               @default(true)
   profilePictureUrl String?
-  role              Role          @relation(fields: [roleId], references: [id])
+  role              Role                  @relation(fields: [roleId], references: [id])
   roleId            String
   createdCourses    Course[]
-  createdCodes      Course_Code[] @relation("InstructorCodes")
-  usedCodes         Course_Code[] @relation("StudentUsedCodes")
+  createdCodes      Course_Code[]         @relation("InstructorCodes")
+  usedCodes         Course_Code[]         @relation("StudentUsedCodes")
   enrollments       Enrollment[]
-  createdAt         DateTime      @default(now())
-  updatedAt         DateTime?     @updatedAt
+  resetPasswordCode Reset_Password_Code[]
+  createdAt         DateTime              @default(now())
+  updatedAt         DateTime?             @updatedAt
 }
 
 model Role {
@@ -30,6 +31,16 @@ model Role {
   users     User[]
   createdAt DateTime  @default(now())
   updatedAt DateTime? @updatedAt
+}
+
+model Reset_Password_Code {
+  id        String   @id @default(uuid())
+  code      String   @unique
+  expireAt  DateTime
+  isValid   Boolean  @default(true)
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  createdAt DateTime @default(now())
 }
 
 model Course {
