@@ -9,7 +9,7 @@ import {AppError} from '../utils/appError';
 import {ApiResponse} from '../dto/api.response';
 import {CourseResponse} from '../dto/course.response';
 import {toCourse, toCourseResponse} from '../mapper/course.mapper';
-import {generateCode} from '../utils/generateCode';
+import {generateEnrollmentsCodes} from '../utils/generateCodes.ts';
 import {CodeRepository} from '../repositories/code.repository';
 import {CodeResponse} from '../dto/code.response';
 import {toCodeResponse} from '../mapper/code.mapper';
@@ -171,7 +171,7 @@ export const generateEnrollmentCodes = asyncWrapper(
         const codes = [];
         for (let i = 0; i < count; i++) {
             codes.push({
-                code: generateCode(6),
+                code: generateEnrollmentsCodes(6),
                 expireAt: new Date(expireAt),
                 instructorId: connectedUser.id,
             });
