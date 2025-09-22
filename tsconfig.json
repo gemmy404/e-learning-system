@@ -4,6 +4,7 @@
     "lib": ["esnext"],
     "module": "commonjs",
     "rootDir": "./src",
+    "typeRoots": ["src/types"],
     "moduleResolution": "node10",
     "allowImportingTsExtensions": true,
     "sourceMap": true,
@@ -16,5 +17,8 @@
     "noImplicitReturns": true,
     "noImplicitOverride": true,
     "skipLibCheck": true
+  },
+  "ts-node": {
+    "files": true
   }
 }
