@@ -1,11 +1,10 @@
-import {AuthenticatedRequest} from "../types/authenticated-request";
-import {NextFunction, Response as ExpressResponse} from 'express';
+import {Request, NextFunction, Response as ExpressResponse} from 'express';
 import {ErrorResponse} from "../dto/error.response.ts";
 import {HttpStatus} from "../utils/httpStatusText.ts";
 import {AppError} from "../utils/appError.ts";
 
 export const allowTo = (...roles: string[]) => {
-    return (req: AuthenticatedRequest, res: ExpressResponse, next: NextFunction) => {
+    return (req: Request, res: ExpressResponse, next: NextFunction) => {
         const userRole: string = JSON.parse((JSON.stringify(req.connectedUser))).role;
         if (!roles.includes(userRole)) {
             const errorResponse: ErrorResponse = {
@@ -18,4 +17,4 @@ export const allowTo = (...roles: string[]) => {
         }
         next();
     }
-}
+};

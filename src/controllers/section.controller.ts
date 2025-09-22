@@ -1,7 +1,6 @@
 import {CourseRepository} from '../repositories/course.repository';
-import {AuthenticatedRequest} from '../types/authenticated-request';
 import {asyncWrapper} from '../middlwares/asyncWrapper';
-import {NextFunction, Response as ExpressResponse} from 'express';
+import {NextFunction, Request, Response as ExpressResponse} from 'express';
 import {SectionRepository} from '../repositories/section.repository';
 import {ErrorResponse} from "../dto/error.response.ts";
 import {HttpStatus} from "../utils/httpStatusText.ts";
@@ -9,19 +8,13 @@ import {AppError} from "../utils/appError.ts";
 import {ApiResponse} from "../dto/api.response.ts";
 import {SectionResponse} from "../dto/section.response.ts";
 import {toSectionResponse} from "../mapper/section.mapper.ts";
-import {handleValidationErrors} from "../utils/handleValidationErrors.ts";
 import {prisma} from "../config/dbConnection.ts";
 
 const courseRepository = new CourseRepository(prisma);
 const sectionRepository = new SectionRepository(prisma);
 
 export const createSection = asyncWrapper(
-    async (req: AuthenticatedRequest, res: ExpressResponse, next: NextFunction) => {
-        const error: false | AppError = handleValidationErrors(req);
-        if (error) {
-            return next(error);
-        }
-
+    async (req: Request, res: ExpressResponse, next: NextFunction) => {
         const courseId = req.params.id;
         const {sectionName, orderIndex} = req.body;
 
@@ -66,17 +59,9 @@ export const createSection = asyncWrapper(
 );
 
 export const getAllSections = asyncWrapper(
-    async (req: AuthenticatedRequest, res: ExpressResponse, next: NextFunction) => {
-        const error: false | AppError = handleValidationErrors(req);
-        if (error) {
-            return next(error);
-        }
-
-        const queryParams = req.query;
-
-        const size: number = Number(queryParams.size) || 8;
-        const page: number = Number(queryParams.page) || 1;
-        const skip = (page - 1) * size;
+    async (req: Request, res: ExpressResponse, next: NextFunction) => {
+        const {size, page} = req.pageInfo || {size: 8, page: 1};
+        const skip: number = (page - 1) * size;
 
         const courseId = req.params.id;
 
@@ -115,12 +100,7 @@ export const getAllSections = asyncWrapper(
 );
 
 export const updateSection = asyncWrapper(
-    async (req: AuthenticatedRequest, res: ExpressResponse, next: NextFunction) => {
-        const error: false | AppError = handleValidationErrors(req);
-        if (error) {
-            return next(error);
-        }
-
+    async (req: Request, res: ExpressResponse, next: NextFunction) => {
         const sectionId = req.params.id;
 
         const savedSection = await sectionRepository.findSectionById(sectionId);
@@ -163,7 +143,7 @@ export const updateSection = asyncWrapper(
 );
 
 export const deleteSection = asyncWrapper(
-    async (req: AuthenticatedRequest, res: ExpressResponse, next: NextFunction) => {
+    async (req: Request, res: ExpressResponse, next: NextFunction) => {
         const sectionId = req.params.id;
 
         const savedSection = await sectionRepository.findSectionById(sectionId);

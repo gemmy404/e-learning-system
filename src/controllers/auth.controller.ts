@@ -11,8 +11,6 @@ import {RoleRepository} from "../repositories/role.repository.ts";
 import type {NextFunction, Request, Response as ExpressResponse} from 'express';
 import {ApiResponse} from "../dto/api.response.ts";
 import {prisma} from "../config/dbConnection.ts";
-import {handleValidationErrors} from "../utils/handleValidationErrors.ts";
-import {AuthenticatedRequest} from "../types/authenticated-request";
 import {generateResetPasswordCode} from "../utils/generateCodes.ts";
 import {ResetPasswordCodeRepository} from "../repositories/reset.password.repository.ts";
 import jwt, {JwtPayload} from "jsonwebtoken";
@@ -24,11 +22,6 @@ const resetPasswordCodeRepository = new ResetPasswordCodeRepository(prisma);
 
 export const register = asyncWrapper(
     async (req: Request, res: ExpressResponse, next: NextFunction) => {
-        const errors: false | AppError = handleValidationErrors(req);
-        if (errors) {
-            return next(errors);
-        }
-
         const user = req.body;
         if (await userRepository.findUserByEmail(user.email)) {
             const errorResponse: ErrorResponse = {
@@ -53,11 +46,6 @@ export const register = asyncWrapper(
 
 export const login = asyncWrapper(
     async (req: Request, res: ExpressResponse, next: NextFunction) => {
-        const errors: false | AppError = handleValidationErrors(req);
-        if (errors) {
-            return next(errors);
-        }
-
         const savedUser = await userRepository.findUserByEmail(req.body.email);
         if (!savedUser) {
             const errorResponse: ErrorResponse = {
@@ -101,12 +89,7 @@ export const login = asyncWrapper(
 );
 
 export const forgotPassword = asyncWrapper(
-    async (req: AuthenticatedRequest, res: ExpressResponse, next: NextFunction) => {
-        const errors: false | AppError = handleValidationErrors(req);
-        if (errors) {
-            return next(errors);
-        }
-
+    async (req: Request, res: ExpressResponse, next: NextFunction) => {
         const email = req.body.email;
 
         const savedUser = await userRepository.findUserByEmail(email);
@@ -137,12 +120,7 @@ export const forgotPassword = asyncWrapper(
 );
 
 export const verifyResetCode = asyncWrapper(
-    async (req: AuthenticatedRequest, res: ExpressResponse, next: NextFunction) => {
-        const errors: false | AppError = handleValidationErrors(req);
-        if (errors) {
-            return next(errors);
-        }
-
+    async (req: Request, res: ExpressResponse, next: NextFunction) => {
         const {email, code} = req.body;
 
         const savedCode = await resetPasswordCodeRepository.findByCode(code);
@@ -193,12 +171,7 @@ export const verifyResetCode = asyncWrapper(
 );
 
 export const resetPassword = asyncWrapper(
-    async (req: AuthenticatedRequest, res: ExpressResponse, next: NextFunction) => {
-        const errors: false | AppError = handleValidationErrors(req);
-        if (errors) {
-            return next(errors);
-        }
-
+    async (req: Request, res: ExpressResponse, next: NextFunction) => {
         const {token, newPassword, confirmNewPassword} = req.body;
 
         if (newPassword !== confirmNewPassword) {

@@ -1,8 +1,7 @@
 import {CourseRepository} from '../repositories/course.repository';
 import {CategoryRepository} from '../repositories/category.repository';
-import {AuthenticatedRequest} from '../types/authenticated-request';
 import {asyncWrapper} from '../middlwares/asyncWrapper';
-import {NextFunction, Response as ExpressResponse} from 'express';
+import {NextFunction, Request, Response as ExpressResponse} from 'express';
 import {ErrorResponse} from '../dto/error.response';
 import {HttpStatus} from '../utils/httpStatusText';
 import {AppError} from '../utils/appError';
@@ -14,19 +13,13 @@ import {CodeRepository} from '../repositories/code.repository';
 import {CodeResponse} from '../dto/code.response';
 import {toCodeResponse} from '../mapper/code.mapper';
 import {prisma} from '../config/dbConnection';
-import {handleValidationErrors} from "../utils/handleValidationErrors.ts";
 
 const courseRepository = new CourseRepository(prisma);
 const categoryRepository = new CategoryRepository(prisma);
 const codeRepository = new CodeRepository(prisma);
 
 export const createCourse = asyncWrapper(
-    async (req: AuthenticatedRequest, res: ExpressResponse, next: NextFunction) => {
-        const errors = handleValidationErrors(req);
-        if (errors) {
-            return next(errors);
-        }
-
+    async (req: Request, res: ExpressResponse, next: NextFunction) => {
         let categoryId = (await categoryRepository.findCategoryByName(req.body.category))?.id;
         if (!categoryId) {
             categoryId = (await categoryRepository.createCategory(req.body.category)).id;
@@ -49,17 +42,9 @@ export const createCourse = asyncWrapper(
 );
 
 export const getMyCreatedCourses = asyncWrapper(
-    async (req: AuthenticatedRequest, res: ExpressResponse, next: NextFunction) => {
-        const errors = handleValidationErrors(req);
-        if (errors) {
-            return next(errors);
-        }
-
-        const queryParams = req.query;
-
-        const size: number = Number(queryParams.size) || 8;
-        const page: number = Number(queryParams.page) || 1;
-        const skip = (page - 1) * size;
+    async (req: Request, res: ExpressResponse, next: NextFunction) => {
+        const {size, page} = req.pageInfo || {size: 8, page: 1};
+        const skip: number = (page - 1) * size;
 
         const connectedUser = JSON.parse((JSON.stringify(req.connectedUser)));
 
@@ -76,12 +61,7 @@ export const getMyCreatedCourses = asyncWrapper(
 );
 
 export const updateCourse = asyncWrapper(
-    async (req: AuthenticatedRequest, res: ExpressResponse, next: NextFunction) => {
-        const errors = handleValidationErrors(req);
-        if (errors) {
-            return next(errors);
-        }
-
+    async (req: Request, res: ExpressResponse, next: NextFunction) => {
         const courseId = req.params.id;
 
         const savedCourse = await courseRepository.findCourseById(courseId);
@@ -118,7 +98,7 @@ export const updateCourse = asyncWrapper(
 );
 
 export const deleteCourse = asyncWrapper(
-    async (req: AuthenticatedRequest, res: ExpressResponse, next: NextFunction) => {
+    async (req: Request, res: ExpressResponse, next: NextFunction) => {
         const courseId = req.params.id;
 
         const savedCourse = await courseRepository.findCourseById(courseId);
@@ -158,12 +138,7 @@ export const deleteCourse = asyncWrapper(
 );
 
 export const generateEnrollmentCodes = asyncWrapper(
-    async (req: AuthenticatedRequest, res: ExpressResponse, next: NextFunction) => {
-        const errors = handleValidationErrors(req);
-        if (errors) {
-            return next(errors);
-        }
-
+    async (req: Request, res: ExpressResponse, next: NextFunction) => {
         const count: number = req.body.count;
         const expireAt: string = req.body.expireAt;
         const connectedUser = JSON.parse(JSON.stringify(req.connectedUser));
@@ -190,18 +165,11 @@ export const generateEnrollmentCodes = asyncWrapper(
 );
 
 export const getAllCodes = asyncWrapper(
-    async (req: AuthenticatedRequest, res: ExpressResponse, next: NextFunction) => {
-        const errors = handleValidationErrors(req);
-        if (errors) {
-            return next(errors);
-        }
-
+    async (req: Request, res: ExpressResponse, next: NextFunction) => {
         const connectedUser = JSON.parse(JSON.stringify(req.connectedUser));
-        const queryParams = req.query;
 
-        const size: number = Number(queryParams.size) || 8;
-        const page: number = Number(queryParams.page) || 1;
-        const skip = (page - 1) * size;
+        const {size, page} = req.pageInfo || {size: 8, page: 1};
+        const skip: number = (page - 1) * size;
 
         const codes = await codeRepository.findAllCodes(connectedUser.id, size, skip);
 
@@ -216,7 +184,7 @@ export const getAllCodes = asyncWrapper(
 );
 
 export const deactivateExpiredCodes = asyncWrapper(
-    async (req: AuthenticatedRequest, res: ExpressResponse, next: NextFunction) => {
+    async (req: Request, res: ExpressResponse, next: NextFunction) => {
         const connectedUser = JSON.parse(JSON.stringify(req.connectedUser));
 
         const result = await codeRepository.deactivateCode(connectedUser.id)

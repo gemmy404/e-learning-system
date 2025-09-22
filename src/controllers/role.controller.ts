@@ -7,7 +7,6 @@ import {AppError} from "../utils/appError.ts";
 import {ApiResponse} from "../dto/api.response.ts";
 import {prisma} from "../config/dbConnection.ts";
 import {UserRole} from "@prisma/client";
-import {handleValidationErrors} from "../utils/handleValidationErrors.ts";
 import {RoleResponse} from "../dto/role.response.ts";
 import {toRoleResponse} from "../mapper/role.mapper.ts";
 
@@ -15,11 +14,6 @@ const roleRepository: RoleRepository = new RoleRepository(prisma);
 
 export const createRole = asyncWrapper(
     async (req: Request, res: ExpressResponse, next: NextFunction) => {
-        const errors: false | AppError = handleValidationErrors(req);
-        if (errors) {
-            return next(errors);
-        }
-
         const roleName = String(req.body.role).toUpperCase();
 
         if (!Object.values(UserRole).includes(roleName as UserRole)) {
@@ -56,16 +50,8 @@ export const createRole = asyncWrapper(
 
 export const getAllRoles = asyncWrapper(
     async (req: Request, res: ExpressResponse, next: NextFunction) => {
-        const errors: false | AppError = handleValidationErrors(req);
-        if (errors) {
-            return next(errors);
-        }
-
-        const queryParams = req.query;
-
-        const size = Number(req.query.size) || 8;
-        const page = Number(req.query.page) || 1;
-        const skip = (page - 1) * size;
+        const {size, page} = req.pageInfo || {size: 8, page: 1};
+        const skip: number = (page - 1) * size;
 
         const roles = await roleRepository.findAllRoles(size, skip);
 

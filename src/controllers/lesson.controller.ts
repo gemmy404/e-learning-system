@@ -1,10 +1,8 @@
 import {LessonRepository} from "../repositories/lesson.repository.ts";
 import {prisma} from "../config/dbConnection.ts";
 import {asyncWrapper} from "../middlwares/asyncWrapper.ts";
-import {AuthenticatedRequest} from "../types/authenticated-request";
-import {NextFunction, Response as ExpressResponse} from "express";
+import {NextFunction, Request, Response as ExpressResponse} from "express";
 import {AppError} from "../utils/appError.ts";
-import {handleValidationErrors} from "../utils/handleValidationErrors.ts";
 import {SectionRepository} from "../repositories/section.repository.ts";
 import {ErrorResponse} from "../dto/error.response.ts";
 import {HttpStatus} from "../utils/httpStatusText.ts";
@@ -17,12 +15,7 @@ const lessonRepository = new LessonRepository(prisma);
 const sectionRepository = new SectionRepository(prisma);
 
 export const createLesson = asyncWrapper(
-    async (req: AuthenticatedRequest, res: ExpressResponse, next: NextFunction) => {
-        const errors: false | AppError = handleValidationErrors(req);
-        if (errors) {
-            return next(errors);
-        }
-
+    async (req: Request, res: ExpressResponse, next: NextFunction) => {
         const sectionId = req.params.id;
         const section = await sectionRepository.findSectionById(sectionId);
         if (!section) {
@@ -79,12 +72,7 @@ export const createLesson = asyncWrapper(
 );
 
 export const getAllLessons = asyncWrapper(
-    async (req: AuthenticatedRequest, res: ExpressResponse, next: NextFunction) => {
-        const paginationErrors: false | AppError = handleValidationErrors(req);
-        if (paginationErrors) {
-            return next(paginationErrors);
-        }
-
+    async (req: Request, res: ExpressResponse, next: NextFunction) => {
         const sectionId = req.params.id;
         const section = await sectionRepository.findSectionById(sectionId);
         if (!section) {
@@ -108,11 +96,8 @@ export const getAllLessons = asyncWrapper(
             return next(error);
         }
 
-        const queryParams = req.query;
-
-        const size = Number(queryParams.size) || 8;
-        const page = Number(queryParams.page) || 1;
-        const skip = (page - 1) * size;
+        const {size, page} = req.pageInfo || {size: 8, page: 1};
+        const skip: number = (page - 1) * size;
 
         const lessons = await lessonRepository.findAllLessonsBySectionId(size, skip, sectionId);
 
@@ -127,12 +112,7 @@ export const getAllLessons = asyncWrapper(
 );
 
 export const updateLesson = asyncWrapper(
-    async (req: AuthenticatedRequest, res: ExpressResponse, next: NextFunction) => {
-        const errors: false | AppError = handleValidationErrors(req);
-        if (errors) {
-            return next(errors);
-        }
-
+    async (req: Request, res: ExpressResponse, next: NextFunction) => {
         const lessonId = req.params.id;
 
         const savedLesson = await lessonRepository.findLessonById(lessonId);
@@ -172,7 +152,7 @@ export const updateLesson = asyncWrapper(
 );
 
 export const deleteLesson = asyncWrapper(
-    async (req: AuthenticatedRequest, res: ExpressResponse, next: NextFunction) => {
+    async (req: Request, res: ExpressResponse, next: NextFunction) => {
         const lessonId = req.params.id;
 
         const savedLesson = await lessonRepository.findLessonById(lessonId);

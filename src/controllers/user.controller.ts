@@ -1,6 +1,5 @@
-import {NextFunction, Response as ExpressResponse} from "express";
+import {NextFunction, Request, Response as ExpressResponse} from "express";
 import {asyncWrapper} from "../middlwares/asyncWrapper.ts";
-import {AuthenticatedRequest} from "../types/authenticated-request";
 import {UserRepository} from "../repositories/user.repository.ts";
 import {ErrorResponse} from "../dto/error.response.ts";
 import {HttpStatus} from "../utils/httpStatusText.ts";
@@ -10,7 +9,6 @@ import {UserResponse} from "../dto/user.response.ts";
 import {toUserResponse} from "../mapper/user.mapper.ts";
 import bcrypt from "bcryptjs";
 import {prisma} from "../config/dbConnection.ts";
-import {handleValidationErrors} from "../utils/handleValidationErrors.ts";
 import {CourseResponse} from "../dto/course.response.ts";
 import {toCourseResponse} from "../mapper/course.mapper.ts";
 import {EnrollmentRepository} from "../repositories/enrollment.repository.ts";
@@ -19,7 +17,7 @@ const userRepository: UserRepository = new UserRepository(prisma);
 const enrollmentRepository = new EnrollmentRepository(prisma);
 
 export const getUserProfile = asyncWrapper(
-    async (req: AuthenticatedRequest, res: ExpressResponse, next: NextFunction) => {
+    async (req: Request, res: ExpressResponse, next: NextFunction) => {
         const connectedUser = JSON.parse((JSON.stringify(req.connectedUser)));
 
         const savedUser = await userRepository.findUserByEmail(connectedUser.email);
@@ -44,7 +42,7 @@ export const getUserProfile = asyncWrapper(
 );
 
 export const updateUserProfile = asyncWrapper( // need to handle request dto, to prevent pass password
-    async (req: AuthenticatedRequest, res: ExpressResponse, next: NextFunction) => {
+    async (req: Request, res: ExpressResponse, next: NextFunction) => {
         const connectedUser = JSON.parse(JSON.stringify(req.connectedUser));
 
         const profile = {
@@ -76,12 +74,7 @@ export const updateUserProfile = asyncWrapper( // need to handle request dto, to
 );
 
 export const changePassword = asyncWrapper(
-    async (req: AuthenticatedRequest, res: ExpressResponse, next: NextFunction) => {
-        const errors: false | AppError = handleValidationErrors(req);
-        if (errors) {
-            return next(errors);
-        }
-
+    async (req: Request, res: ExpressResponse, next: NextFunction) => {
         const connectedUser = JSON.parse(JSON.stringify(req.connectedUser));
         const {oldPassword, newPassword} = req.body;
 
@@ -121,17 +114,10 @@ export const changePassword = asyncWrapper(
 );
 
 export const getMyEnrollmentCourses = asyncWrapper(
-    async (req: AuthenticatedRequest, res: ExpressResponse, next: NextFunction) => {
-        const errors: false | AppError = handleValidationErrors(req);
-        if (errors) {
-            return next(errors);
-        }
+    async (req: Request, res: ExpressResponse, next: NextFunction) => {
+        const {size, page} = req.pageInfo || {size: 8, page: 1};
+        const skip: number = (page - 1) * size;
 
-        const queryParams = req.query;
-
-        const size: number = Number(queryParams.size) || 8;
-        const page: number = Number(queryParams.page) || 1;
-        const skip = (page - 1) * size;
         const connectedUser = JSON.parse(JSON.stringify(req.connectedUser));
 
         const courses = (await enrollmentRepository

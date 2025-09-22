@@ -1,11 +1,10 @@
-import type {NextFunction, Response as ExpressResponse} from 'express';
+import type {Request, NextFunction, Response as ExpressResponse} from 'express';
 import {AppError} from "../utils/appError.ts";
 import {ErrorResponse} from "../dto/error.response.ts";
 import {HttpStatus} from "../utils/httpStatusText.ts";
 import jwt, {JwtPayload} from "jsonwebtoken";
-import {AuthenticatedRequest} from "../types/authenticated-request";
 
-export const verifyToken = (req: AuthenticatedRequest, res: ExpressResponse, next: NextFunction) => {
+export const verifyToken = (req: Request, res: ExpressResponse, next: NextFunction) => {
     const authHeader: string | string[] | undefined = req.headers.authorization || req.headers.Authorization;
 
     if (!authHeader) {

@@ -6,20 +6,21 @@ import {
     registerValidations, resetPasswordValidations,
     verifyCodeValidations
 } from "../middlwares/validationSchema.ts";
+import {checkValidationErrors} from "../middlwares/checkValidationErrors.ts";
 
 export const router: Router = express.Router();
 
 router.route("/register")
-    .post(registerValidations, authController.register);
+    .post(registerValidations, checkValidationErrors, authController.register);
 
 router.route("/login")
-    .post(loginValidations, authController.login);
+    .post(loginValidations, checkValidationErrors, authController.login);
 
 router.route('/forgot-password')
-    .post(forgotPasswordValidations, authController.forgotPassword);
+    .post(forgotPasswordValidations, checkValidationErrors, authController.forgotPassword);
 
 router.route('/verify-code')
-    .post(verifyCodeValidations, authController.verifyResetCode);
+    .post(verifyCodeValidations, checkValidationErrors, authController.verifyResetCode);
 
 router.route('/reset-password')
-    .patch(resetPasswordValidations, authController.resetPassword);
+    .patch(resetPasswordValidations, checkValidationErrors, authController.resetPassword);

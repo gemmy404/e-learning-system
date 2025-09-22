@@ -9,23 +9,13 @@ import {ApiResponse} from '../dto/api.response';
 import {CategoryResponse} from '../dto/category.response';
 import {toCategoryResponse} from '../mapper/category.mapper';
 import {prisma} from '../config/dbConnection';
-import {handleValidationErrors} from '../utils/handleValidationErrors';
 
 const categoryRepository: CategoryRepository = new CategoryRepository(prisma);
 
 export const getAllCategories = asyncWrapper(
     async (req: Request, res: ExpressResponse, next: NextFunction) => {
-        const errors: false | AppError = handleValidationErrors(req);
-        if (errors) {
-            return next(errors);
-        }
-
-        const queryParams = req.query;
-
-        const size = Number(queryParams.size) || 8;
-        const page = Number(queryParams.page) || 1;
-        const skip = (page - 1) * size;
-
+        const {size, page} = req.pageInfo || {size: 8, page: 1};
+        const skip: number = (page - 1) * size;
         const categories = await categoryRepository.findAllCategories(size, skip);
 
         const apiResponse: ApiResponse<{ categories: CategoryResponse[] }> = {
