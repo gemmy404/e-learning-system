@@ -39,17 +39,21 @@ export class LessonRepository {
     }
 
     async findAllLessonsBySectionId(take: number, skip: number, sectionId: string) {
-        const lessons = await this.prisma.lesson.findMany({
-            where: {
-                sectionId
-            },
-            take,
-            skip,
-            orderBy: {
-                orderIndex: 'asc'
-            }
-        });
-        return lessons;
+        const where = {sectionId};
+
+        const [lessons, counts] = await Promise.all([
+            this.prisma.lesson.findMany({
+                where,
+                take,
+                skip,
+                orderBy: {
+                    orderIndex: 'asc'
+                }
+            }),
+            this.prisma.lesson.count({where})
+        ]);
+
+        return {lessons, counts};
     }
 
     async findLessonById(lessonId: string) {

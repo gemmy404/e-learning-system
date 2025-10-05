@@ -15,21 +15,22 @@ export class CodeRepository {
     }
 
     async findAllCodes(instructorId: string, take: number, skip: number) {
-        const codes = await this.prisma.course_Code.findMany({
-            where: {
-                AND: [
-                    {instructorId},
-                    {isValid: true},
-                ]
-            },
-            take,
-            skip,
-            orderBy: [
-                {isUsed: 'asc'},
-                {expireAt: 'asc'},
-            ]
-        });
-        return codes;
+        const where = {instructorId, isValid: true};
+
+        const [codes, counts] = await Promise.all([
+            this.prisma.course_Code.findMany({
+                where,
+                take,
+                skip,
+                orderBy: [
+                    {isUsed: 'asc'},
+                    {expireAt: 'asc'},
+                ],
+            }),
+            this.prisma.course_Code.count({where}),
+        ]);
+
+        return {codes, counts};
     }
 
     async deactivateCode(instructorId: string) {

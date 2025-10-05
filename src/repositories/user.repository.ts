@@ -1,8 +1,8 @@
 import {PrismaClient, User, UserRole} from "@prisma/client";
 import {RoleRepository} from "./role.repository.ts";
-import {ErrorResponse} from "../dto/error.response.ts";
 import {HttpStatus} from "../utils/httpStatusText.ts";
 import {AppError} from "../utils/appError.ts";
+import {ApiResponse} from "../dto/api.response.ts";
 
 export class UserRepository {
     private prisma: PrismaClient;
@@ -16,7 +16,7 @@ export class UserRepository {
     async createUser(user: User) {
         const role = await this.roleRepository.findRoleByName(UserRole.USER);
         if (!role) {
-            const errorResponse: ErrorResponse = {
+            const errorResponse: ApiResponse<null> = {
                 status: HttpStatus.FAIL,
                 message: "Role not found",
             };
@@ -63,24 +63,30 @@ export class UserRepository {
     }
 
     async findUsersByRole(role: UserRole, take: number, skip: number) {
-        const users = await this.prisma.user.findMany({
-            where: {
-                role: {
-                    name: role
-                }
-            },
-            include: {
-                role: {
-                    select: {name: true}
-                }
-            },
-            omit: {
-                password: true
-            },
-            take,
-            skip
-        });
-        return users;
+        const where = {
+            role: {
+                name: role
+            }
+        };
+
+        const [users, counts] = await Promise.all([
+            this.prisma.user.findMany({
+                where,
+                include: {
+                    role: {
+                        select: {name: true}
+                    }
+                },
+                omit: {
+                    password: true
+                },
+                take,
+                skip
+            }),
+            this.prisma.user.count({where})
+        ]);
+
+        return {users, counts};
     }
 
     async updateUserProfile(userId: string, profile: any) {

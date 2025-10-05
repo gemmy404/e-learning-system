@@ -29,11 +29,15 @@ export class RoleRepository {
     }
 
     async findAllRoles(take: number, skip: number) {
-        const roles = await this.prisma.role.findMany({
-            take,
-            skip
-        });
-        return roles;
+        const [roles, counts] = await Promise.all([
+            this.prisma.role.findMany({
+                take,
+                skip
+            }),
+            this.prisma.role.count({})
+        ]);
+
+        return {roles, counts};
     }
 
 }

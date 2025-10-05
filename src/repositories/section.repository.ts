@@ -44,22 +44,27 @@ export class SectionRepository {
     }
 
     async findAllSectionsByCourseId(take: number, skip: number, courseId: string) {
-        const sections = await this.prisma.section.findMany({
-            where: {courseId},
-            take,
-            skip,
-            orderBy: {
-                orderIndex: 'asc'
-            },
-            include: {
-                _count: {
-                    select: {
-                        lessons: true
+        const where = {courseId};
+
+        const [sections, counts] = await Promise.all([
+            this.prisma.section.findMany({
+                where,
+                take,
+                skip,
+                orderBy: {
+                    orderIndex: 'asc'
+                },
+                include: {
+                    _count: {
+                        select: {
+                            lessons: true
+                        }
                     }
                 }
-            }
-        });
-        return sections;
+            }),
+            this.prisma.section.count({where})
+        ]);
+        return {sections, counts};
     }
 
     async findSectionById(sectionId: string) {

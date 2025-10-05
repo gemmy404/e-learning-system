@@ -1,4 +1,4 @@
-import {Course, Prisma, PrismaClient} from '@prisma/client';
+import {Prisma, PrismaClient} from '@prisma/client';
 
 export class CourseRepository {
     private prisma: PrismaClient;
@@ -15,24 +15,29 @@ export class CourseRepository {
     }
 
     async findAllCourses(take: number, skip: number, instructorId?: string) {
-        const courses = await this.prisma.course.findMany({
-            where: {instructorId},
-            take,
-            skip,
-            orderBy: {
-                createdAt: 'desc'
-            },
-            include: {
-                instructor: {
-                    select: {name: true}
-                },
-                category: {
-                    select: {name: true}
-                }
-            }
-        });
+        const where = {instructorId};
 
-        return courses;
+        const [courses, counts] = await Promise.all([
+            this.prisma.course.findMany({
+                where,
+                take,
+                skip,
+                orderBy: {
+                    createdAt: 'desc'
+                },
+                include: {
+                    instructor: {
+                        select: {name: true}
+                    },
+                    category: {
+                        select: {name: true}
+                    }
+                }
+            }),
+            this.prisma.course.count({where}),
+        ]);
+
+        return {courses, counts};
     }
 
     async findCourseById(courseId: string) {
@@ -53,57 +58,81 @@ export class CourseRepository {
     }
 
     async findCoursesByTitle(courseTitle: string, take: number, skip: number) {
-        const courses = await this.prisma.course.findMany({
-            where: {
-                title: {
-                    mode: Prisma.QueryMode.insensitive,
-                    contains: courseTitle,
-                }
-            },
-            take,
-            skip,
-            orderBy: {
-                createdAt: 'desc'
-            },
-            include: {
-                instructor: {
-                    select: {name: true}
+        return this.prisma.$transaction(async (tx) => {
+            const courses = await tx.course.findMany({
+                where: {
+                    title: {
+                        mode: Prisma.QueryMode.insensitive,
+                        contains: courseTitle,
+                    }
                 },
-                category: {
-                    select: {name: true}
+                take,
+                skip,
+                orderBy: {
+                    createdAt: 'desc'
+                },
+                include: {
+                    instructor: {
+                        select: {name: true}
+                    },
+                    category: {
+                        select: {name: true}
+                    }
                 }
-            }
-        });
+            });
 
-        return courses;
+            const counts = await tx.course.count({
+                where: {
+                    title: {
+                        mode: Prisma.QueryMode.insensitive,
+                        contains: courseTitle,
+                    }
+                }
+            });
+
+            return {courses, counts};
+        });
     }
 
     async findCoursesByCategory(categoryName: string, take: number, skip: number) {
-        const courses = await this.prisma.course.findMany({
-            where: {
-                category: {
-                    name: {
-                        mode: Prisma.QueryMode.insensitive,
-                        startsWith: categoryName
+        return this.prisma.$transaction(async (tx) => {
+            const courses = await tx.course.findMany({
+                where: {
+                    category: {
+                        name: {
+                            mode: Prisma.QueryMode.insensitive,
+                            startsWith: categoryName
+                        }
+                    }
+                },
+                take,
+                skip,
+                orderBy: {
+                    createdAt: 'desc'
+                },
+                include: {
+                    instructor: {
+                        select: {name: true}
+                    },
+                    category: {
+                        select: {name: true}
                     }
                 }
-            },
-            take,
-            skip,
-            orderBy: {
-                createdAt: 'desc'
-            },
-            include: {
-                instructor: {
-                    select: {name: true}
-                },
-                category: {
-                    select: {name: true}
-                }
-            }
-        });
+            });
 
-        return courses;
+            const counts = await tx.course.count({
+                where: {
+                    category: {
+                        name: {
+                            mode: Prisma.QueryMode.insensitive,
+                            startsWith: categoryName
+                        }
+                    }
+                }
+            });
+
+            return {courses, counts};
+        });
     }
 
     async updateCourse(courseId: string, course: any) {

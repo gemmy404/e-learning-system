@@ -27,10 +27,11 @@ export class EnrollmentRepository {
     }
 
     async findAllEnrolledCourseByStudentId(take: number, skip: number, userId: string) {
-        const enrolledCourses = await this.prisma.enrollment.findMany({
-            where: {
-                userId
-            },
+       const where = {userId};
+
+       const [enrolledCourses, counts] = await Promise.all([
+        this.prisma.enrollment.findMany({
+            where,
             include: {
                 course: {
                     include: {
@@ -48,8 +49,11 @@ export class EnrollmentRepository {
             orderBy: {
                 enrollmentDate: 'desc'
             }
-        });
-        return enrolledCourses;
+        }),
+           this.prisma.enrollment.count({where})
+       ]);
+
+        return {enrolledCourses, counts};
     }
 
 }
