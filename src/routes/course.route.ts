@@ -20,4 +20,4 @@ router.route('/:id')
     .get(courseController.getCourseById);
 
 router.route('/:id/enroll')
-    .post(verifyToken, checkValidationErrors, enrollCourseValidations, courseController.enrollCourse);
+    .post(verifyToken, enrollCourseValidations, checkValidationErrors,courseController.enrollCourse);
