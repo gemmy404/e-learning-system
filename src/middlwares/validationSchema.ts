@@ -93,6 +93,17 @@ export const changePasswordValidations: ValidationChain[] = [
     // .withMessage('Password must include uppercase, lowercase, number, and special character')
 ];
 
+export const updateUserProfileValidations: ValidationChain[] = [
+    body('email')
+        .optional()
+    .notEmpty()
+        .withMessage('Email is required'),
+    body('name')
+        .optional()
+        .notEmpty()
+        .withMessage('Name is required'),
+];
+
 export const userRoleValidations: ValidationChain[] = [
     body('role')
         .notEmpty()
