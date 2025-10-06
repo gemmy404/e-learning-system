@@ -1,0 +1,1355 @@
+{
+	"info": {
+		"_postman_id": "cf3209f5-9f9e-46db-b6ec-cb78cd2d5c56",
+		"name": "e-learning",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "36746116"
+	},
+	"item": [
+		{
+			"name": "auth",
+			"item": [
+				{
+					"name": "register",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"Instructor Nader\",\r\n    \"email\": \"nader.instructor@gmail.com\",\r\n    \"password\": \"12345678\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/api/auth/register",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "forgot-password",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\": \"mahmoudgemy581@gmail.com\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/api/auth/forgot-password",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"forgot-password"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "verify-code",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\": \"mahmoudgemy581@gmail.com\",\r\n    \"code\": \"576764\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/api/auth/verify-code",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"verify-code"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "reset-password",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImU3YTViNTViLTMyMjgtNGJiOC05MzU3LTU2MTI1YTBjMWIwMCIsImVtYWlsIjoibWFobW91ZGdlbXk1ODFAZ21haWwuY29tIiwiaWF0IjoxNzU3NzcxMDg1LCJleHAiOjE3NTc3NzEzODV9.sN13zItRN0vbOA4e_ggXtPL3QM3r81t7EQnLSVeIpBw\",\r\n    \"newPassword\": \"12345678\",\r\n    \"confirmNewPassword\": \"12345678\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/api/auth/reset-password",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"reset-password"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.collectionVariables.set(\"JWT\", pm.response.json().data.token);"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\": \"mahmoudgemy581@gmail.com\",\r\n    \"password\": \"12345678\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/api/auth/login",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "courses",
+			"item": [
+				{
+					"name": "get-all-courses",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/api/courses?size=4&page=1",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"courses"
+							],
+							"query": [
+								{
+									"key": "size",
+									"value": "4"
+								},
+								{
+									"key": "page",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get-course-by-id",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/api/courses/d6033722-5017-48e1-8a65-683cfb9428b1",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"courses",
+								"d6033722-5017-48e1-8a65-683cfb9428b1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "search-course-by-name",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"title\": \"Data Structure\",\r\n    \"price\": 123456\r\n}"
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/api/courses/search?title=de&size=2&page=1",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"courses",
+								"search"
+							],
+							"query": [
+								{
+									"key": "title",
+									"value": "de"
+								},
+								{
+									"key": "size",
+									"value": "2"
+								},
+								{
+									"key": "page",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "search-course-by-category",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"title\": \"Data Structure\",\r\n    \"price\": 123456\r\n}"
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/api/courses/category?category=art&size=2&page=1",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"courses",
+								"category"
+							],
+							"query": [
+								{
+									"key": "category",
+									"value": "art"
+								},
+								{
+									"key": "size",
+									"value": "2"
+								},
+								{
+									"key": "page",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "enroll-course",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{JWT}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"enrollCode\": \"Q9U159F498Z2\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/api/courses/4f97865d-17d7-472f-8f02-7977d1dabf7c/enroll",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"courses",
+								"4f97865d-17d7-472f-8f02-7977d1dabf7c",
+								"enroll"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "categories",
+			"item": [
+				{
+					"name": "get-all-categories",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/api/categories?size=2&page=3",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"categories"
+							],
+							"query": [
+								{
+									"key": "size",
+									"value": "2"
+								},
+								{
+									"key": "page",
+									"value": "3"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "users",
+			"item": [
+				{
+					"name": "update-user-profile",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{JWT}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "name",
+									"value": "Mahmoud Gamal",
+									"type": "text"
+								},
+								{
+									"key": "profilePictureUrl",
+									"type": "file",
+									"src": "/C:/Users/DELL/Downloads/block-diagram.png",
+									"disabled": true
+								}
+							]
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/api/users/profile",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"profile"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "change-password",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{JWT}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"oldPassword\": \"123456789\",\r\n    \"newPassword\": \"12345678\"\r\n    \r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/api/users/change-password",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"change-password"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get-user-profile",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{JWT}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{BASE_URL}}/api/users/profile",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"profile"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get-all-enrolled-courses",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{JWT}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{BASE_URL}}/api/users/me/enrollments?size=2&page=1",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"me",
+								"enrollments"
+							],
+							"query": [
+								{
+									"key": "size",
+									"value": "2"
+								},
+								{
+									"key": "page",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "admin",
+			"item": [
+				{
+					"name": "get-users-by-role",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{JWT}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{BASE_URL}}/api/admin/users?role=instructor&size=2&page=1",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"admin",
+								"users"
+							],
+							"query": [
+								{
+									"key": "role",
+									"value": "instructor"
+								},
+								{
+									"key": "size",
+									"value": "2"
+								},
+								{
+									"key": "page",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get-user-by-email",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{JWT}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{BASE_URL}}/api/admin/users/search?email=nader.instructor@gmail.com",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"admin",
+								"users",
+								"search"
+							],
+							"query": [
+								{
+									"key": "email",
+									"value": "nader.instructor@gmail.com"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "toggle-user-activation",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{JWT}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{BASE_URL}}/api/admin/users/f32e62fe-b94f-4599-8ed6-418e1453f360/toggle-activation",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"admin",
+								"users",
+								"f32e62fe-b94f-4599-8ed6-418e1453f360",
+								"toggle-activation"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "change-user-role",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{JWT}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"role\": \"instructor\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/api/admin/users/f32e62fe-b94f-4599-8ed6-418e1453f360/role",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"admin",
+								"users",
+								"f32e62fe-b94f-4599-8ed6-418e1453f360",
+								"role"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "create-role",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{JWT}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"role\": \"instructor\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/api/admin/roles",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"admin",
+								"roles"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get-all-roles",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{JWT}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{BASE_URL}}/api/admin/roles",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"admin",
+								"roles"
+							],
+							"query": [
+								{
+									"key": "size",
+									"value": "3",
+									"disabled": true
+								},
+								{
+									"key": "page",
+									"value": "1",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "instructor",
+			"item": [
+				{
+					"name": "courses",
+					"item": [
+						{
+							"name": "create-course",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "authorization",
+										"value": "Bearer {{JWT}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "title",
+											"value": "TEST TEST",
+											"type": "text"
+										},
+										{
+											"key": "description",
+											"value": "TEST Description",
+											"type": "text"
+										},
+										{
+											"key": "price",
+											"value": "89.99",
+											"type": "text"
+										},
+										{
+											"key": "category",
+											"value": "TEST",
+											"type": "text"
+										},
+										{
+											"key": "thumbnail",
+											"type": "file",
+											"src": "/C:/Users/DELL/Downloads/block-diagram.png"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/api/instructor/courses",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"instructor",
+										"courses"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "update-course",
+							"request": {
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{JWT}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "title",
+											"value": "TESSSSSSSSSST",
+											"type": "text"
+										},
+										{
+											"key": "price",
+											"value": "99.99",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "thumbnail",
+											"type": "file",
+											"src": "/C:/Users/DELL/Downloads/goals.png",
+											"disabled": true
+										},
+										{
+											"key": "description",
+											"value": "Learn SEO, social media marketing, and email marketing strategies.",
+											"type": "text",
+											"disabled": true
+										}
+									]
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/api/instructor/courses/e8cb606e-2ea4-40f1-a98e-60bb46cd5d88",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"instructor",
+										"courses",
+										"e8cb606e-2ea4-40f1-a98e-60bb46cd5d88"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "delete-course",
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{JWT}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{BASE_URL}}/api/instructor/courses/e8cb606e-2ea4-40f1-a98e-60bb46cd5d88",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"instructor",
+										"courses",
+										"e8cb606e-2ea4-40f1-a98e-60bb46cd5d88"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "get-my-courses",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{JWT}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{BASE_URL}}/api/instructor/courses/my",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"instructor",
+										"courses",
+										"my"
+									],
+									"query": [
+										{
+											"key": "size",
+											"value": "10",
+											"disabled": true
+										},
+										{
+											"key": "page",
+											"value": "2",
+											"disabled": true
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "codes",
+					"item": [
+						{
+							"name": "generate-enrollment-codes",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{JWT}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"count\": 3,\r\n    \"expireAt\": \"10/31/2025\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/api/instructor/courses/enrollment-codes",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"instructor",
+										"courses",
+										"enrollment-codes"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "get-enrollment-codes",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{JWT}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{BASE_URL}}/api/instructor/courses/enrollment-codes",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"instructor",
+										"courses",
+										"enrollment-codes"
+									],
+									"query": [
+										{
+											"key": "size",
+											"value": "2",
+											"disabled": true
+										},
+										{
+											"key": "page",
+											"value": "1",
+											"disabled": true
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "deactivate-expired-codes",
+							"request": {
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{JWT}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{BASE_URL}}/api/instructor/courses/enrollment-codes",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"instructor",
+										"courses",
+										"enrollment-codes"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "sections",
+					"item": [
+						{
+							"name": "get-all-course-sections",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{JWT}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{BASE_URL}}/api/instructor/courses/4f97865d-17d7-472f-8f02-7977d1dabf7c/sections?size=30&page=1",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"instructor",
+										"courses",
+										"4f97865d-17d7-472f-8f02-7977d1dabf7c",
+										"sections"
+									],
+									"query": [
+										{
+											"key": "size",
+											"value": "30"
+										},
+										{
+											"key": "page",
+											"value": "1"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "create-course-section",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{JWT}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"sectionName\": \"middle\",\r\n    \"orderIndex\": 2\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/api/instructor/courses/4f97865d-17d7-472f-8f02-7977d1dabf7c/sections",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"instructor",
+										"courses",
+										"4f97865d-17d7-472f-8f02-7977d1dabf7c",
+										"sections"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "update-section",
+							"request": {
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{JWT}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    // \"sectionName\": \"middle 0\",\r\n    \"orderIndex\": 2\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/api/instructor/sections/4ed0f24f-f67b-4bc3-8c63-afd220132519",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"instructor",
+										"sections",
+										"4ed0f24f-f67b-4bc3-8c63-afd220132519"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "delete-section",
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{JWT}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{BASE_URL}}/api/instructor/sections/93409290-c9e1-4a7d-946c-37a58e5f32b9",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"instructor",
+										"sections",
+										"93409290-c9e1-4a7d-946c-37a58e5f32b9"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "lessons",
+					"item": [
+						{
+							"name": "get-all-section-lessons",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{JWT}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{BASE_URL}}/api/instructor/sections/eb4c605c-6b19-420f-8fdc-9d15ef7bbf77/lessons",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"instructor",
+										"sections",
+										"eb4c605c-6b19-420f-8fdc-9d15ef7bbf77",
+										"lessons"
+									],
+									"query": [
+										{
+											"key": "size",
+											"value": "2",
+											"disabled": true
+										},
+										{
+											"key": "page",
+											"value": "1",
+											"disabled": true
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "create-lessons",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{JWT}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "name",
+											"value": "Lecture-0",
+											"type": "text"
+										},
+										{
+											"key": "contentType",
+											"value": "VIDEO",
+											"type": "text"
+										},
+										{
+											"key": "orderIndex",
+											"value": "1",
+											"type": "text"
+										},
+										{
+											"key": "content",
+											"type": "file",
+											"src": "/D:/obs-records/2024-06-15 15-37-56.mkv"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/api/instructor/sections/eb4c605c-6b19-420f-8fdc-9d15ef7bbf77/lessons",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"instructor",
+										"sections",
+										"eb4c605c-6b19-420f-8fdc-9d15ef7bbf77",
+										"lessons"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "update-lesson",
+							"request": {
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{JWT}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "name",
+											"value": "Lecture-1",
+											"type": "text"
+										},
+										{
+											"key": "orderIndex",
+											"value": "2",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "contentType",
+											"value": "PDF",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "content",
+											"type": "file",
+											"src": "/C:/Users/DELL/Downloads/61125.pdf",
+											"disabled": true
+										}
+									]
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/api/instructor/lessons/2d08219b-d962-4998-ab01-487a387949ea",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"instructor",
+										"lessons",
+										"2d08219b-d962-4998-ab01-487a387949ea"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "delete-lesson",
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{JWT}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{BASE_URL}}/api/instructor/lessons/6fac7f4b-2460-4ced-87e2-215f16bac0b7",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"instructor",
+										"lessons",
+										"6fac7f4b-2460-4ced-87e2-215f16bac0b7"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"requests": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"requests": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "BASE_URL",
+			"value": "http://localhost:3000"
+		},
+		{
+			"key": "JWT",
+			"value": ""
+		}
+	]
+}
