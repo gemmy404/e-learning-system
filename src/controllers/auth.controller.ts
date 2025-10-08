@@ -4,7 +4,6 @@ import {generateJwt} from "../utils/generateJwt.ts";
 import {asyncWrapper} from "../middlwares/asyncWrapper.ts";
 import {LoginResponse} from "../dto/login.response.ts";
 import {HttpStatus} from "../utils/httpStatusText.ts";
-import {ErrorResponse} from "../dto/error.response.ts";
 import {AppError} from "../utils/appError.ts";
 import {RegisterResponse} from "../dto/register.response.ts";
 import {RoleRepository} from "../repositories/role.repository.ts";
@@ -24,7 +23,7 @@ export const register = asyncWrapper(
     async (req: Request, res: ExpressResponse, next: NextFunction) => {
         const user = req.body;
         if (await userRepository.findUserByEmail(user.email)) {
-            const errorResponse: ErrorResponse = {
+            const errorResponse: ApiResponse<null> = {
                 status: HttpStatus.FAIL,
                 message: "Email already exists, please try another email",
                 data: null
@@ -36,9 +35,11 @@ export const register = asyncWrapper(
         user.password = await bcrypt.hash(user.password, 10);
         const requestedUser = await userRepository.createUser(user);
 
-        const apiResponse: ApiResponse<{ user: RegisterResponse }> = {
+        const apiResponse: ApiResponse<RegisterResponse> = {
             status: HttpStatus.SUCCESS,
-            data: {user: {email: requestedUser.email}}
+            data: {
+                email: requestedUser.email
+            },
         };
         return res.status(201).json(apiResponse);
     }
@@ -48,7 +49,7 @@ export const login = asyncWrapper(
     async (req: Request, res: ExpressResponse, next: NextFunction) => {
         const savedUser = await userRepository.findUserByEmail(req.body.email);
         if (!savedUser) {
-            const errorResponse: ErrorResponse = {
+            const errorResponse: ApiResponse<null> = {
                 status: HttpStatus.FAIL,
                 message: "The email that you've entered is incorrect",
                 data: null
@@ -59,7 +60,7 @@ export const login = asyncWrapper(
 
         const matchedPassword = await bcrypt.compare(req.body.password, savedUser.password);
         if (!matchedPassword) {
-            const errorResponse: ErrorResponse = {
+            const errorResponse: ApiResponse<null> = {
                 status: HttpStatus.FAIL,
                 message: "The password that you've entered is incorrect",
                 data: null
@@ -69,7 +70,7 @@ export const login = asyncWrapper(
         }
 
         if (!savedUser.isActive) {
-            const errorResponse: ErrorResponse = {
+            const errorResponse: ApiResponse<null> = {
                 status: HttpStatus.ERROR,
                 message: "Your account is inactive. Please contact support",
                 data: null
@@ -94,7 +95,7 @@ export const forgotPassword = asyncWrapper(
 
         const savedUser = await userRepository.findUserByEmail(email);
         if (!savedUser) {
-            const errorResponse: ErrorResponse = {
+            const errorResponse: ApiResponse<null> = {
                 status: HttpStatus.FAIL,
                 message: "User not found",
                 data: null
@@ -125,7 +126,7 @@ export const verifyResetCode = asyncWrapper(
 
         const savedCode = await resetPasswordCodeRepository.findByCode(code);
         if (!savedCode) {
-            const errorResponse: ErrorResponse = {
+            const errorResponse: ApiResponse<null> = {
                 status: HttpStatus.FAIL,
                 message: `The code ${code} that you've entered is incorrect`,
                 data: null
@@ -135,7 +136,7 @@ export const verifyResetCode = asyncWrapper(
         }
 
         if (email !== savedCode.user.email) {
-            const errorResponse: ErrorResponse = {
+            const errorResponse: ApiResponse<null> = {
                 status: HttpStatus.FAIL,
                 message: "Invalid reset code for this email",
                 data: null
@@ -146,7 +147,7 @@ export const verifyResetCode = asyncWrapper(
 
         if (savedCode.expireAt.getTime() < Date.now() || !savedCode.isValid) {
             await resetPasswordCodeRepository.InvalidateCodes(savedCode.user.id);
-            const errorResponse: ErrorResponse = {
+            const errorResponse: ApiResponse<null> = {
                 status: HttpStatus.FAIL,
                 message: "The code is expired, a new code has been sent to your email",
                 data: null
@@ -175,7 +176,7 @@ export const resetPassword = asyncWrapper(
         const {token, newPassword, confirmNewPassword} = req.body;
 
         if (newPassword !== confirmNewPassword) {
-            const errorResponse: ErrorResponse = {
+            const errorResponse: ApiResponse<null> = {
                 status: HttpStatus.FAIL,
                 message: "Passwords do not match",
                 data: null

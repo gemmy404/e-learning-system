@@ -1,7 +1,6 @@
-import {Request, Response as ExpressResponse, NextFunction} from 'express';
+import {NextFunction, Request, Response as ExpressResponse} from 'express';
 import {asyncWrapper} from '../middlwares/asyncWrapper';
 import {AppError} from '../utils/appError';
-import {ErrorResponse} from '../dto/error.response';
 import {HttpStatus} from '../utils/httpStatusText';
 import {CourseRepository} from '../repositories/course.repository';
 import {CourseResponse} from '../dto/course.response';
@@ -10,6 +9,7 @@ import {toCourseResponse} from '../mapper/course.mapper';
 import {prisma} from "../config/dbConnection.ts";
 import {EnrollmentRepository} from "../repositories/enrollment.repository.ts";
 import {CodeRepository} from "../repositories/code.repository.ts";
+import {toPageResponse} from "../mapper/pagination.mapper.ts";
 
 const courseRepository = new CourseRepository(prisma);
 const enrollmentRepository = new EnrollmentRepository(prisma);
@@ -20,11 +20,12 @@ export const getAllCourses = asyncWrapper(
         const {size, page} = req.pageInfo || {size: 8, page: 1};
         const skip: number = (page - 1) * size;
 
-        const courses = await courseRepository.findAllCourses(size, skip);
+        const {courses, counts} = await courseRepository.findAllCourses(size, skip);
 
         const apiResponse: ApiResponse<CourseResponse[]> = {
             status: HttpStatus.SUCCESS,
-            data: courses.map(toCourseResponse)
+            data: courses.map(toCourseResponse),
+            pageInfo: toPageResponse(size, page, counts),
         }
         return res.status(200).json(apiResponse);
     }
@@ -36,7 +37,7 @@ export const getCourseById = asyncWrapper(
 
         const course = await courseRepository.findCourseById(courseId);
         if (!course) {
-            const errorResponse: ErrorResponse = {
+            const errorResponse: ApiResponse<null> = {
                 status: HttpStatus.FAIL,
                 message: `Course with id ${courseId} not found`,
                 data: null
@@ -45,9 +46,9 @@ export const getCourseById = asyncWrapper(
             return next(error);
         }
 
-        const apiResponse: ApiResponse<{ course: CourseResponse }> = {
+        const apiResponse: ApiResponse<CourseResponse> = {
             status: HttpStatus.SUCCESS,
-            data: {course: toCourseResponse(course)}
+            data: toCourseResponse(course),
         }
         return res.status(200).json(apiResponse);
     }
@@ -57,7 +58,7 @@ export const searchCourseByTitle = asyncWrapper(
     async (req: Request, res: ExpressResponse, next: NextFunction) => {
         const courseTitle = req.query.title
         if (!courseTitle) {
-            const errorResponse: ErrorResponse = {
+            const errorResponse: ApiResponse<null> = {
                 status: HttpStatus.FAIL,
                 message: "Please enter course name",
                 data: null
@@ -69,13 +70,13 @@ export const searchCourseByTitle = asyncWrapper(
         const {size, page} = req.pageInfo || {size: 8, page: 1};
         const skip: number = (page - 1) * size;
 
-        const courses = await courseRepository.findCoursesByTitle(String(courseTitle), size, skip);
+        const {courses, counts} = await courseRepository.findCoursesByTitle(String(courseTitle), size, skip);
 
-        const apiResponse: ApiResponse<{ courses: CourseResponse[] }> = {
+        const apiResponse: ApiResponse<CourseResponse[]> = {
             status: HttpStatus.SUCCESS,
-            data: {
-                courses: courses.map(toCourseResponse)
-            }
+            data: courses.map(toCourseResponse),
+            pageInfo: toPageResponse(size, page, counts),
+
         };
         return res.status(200).json(apiResponse);
     }
@@ -85,7 +86,7 @@ export const filterCourseByCategory = asyncWrapper(
     async (req: Request, res: ExpressResponse, next: NextFunction) => {
         const category = req.query.category
         if (!category) {
-            const errorResponse: ErrorResponse = {
+            const errorResponse: ApiResponse<null> = {
                 status: HttpStatus.FAIL,
                 message: "Please enter category name",
                 data: null
@@ -97,13 +98,13 @@ export const filterCourseByCategory = asyncWrapper(
         const {size, page} = req.pageInfo || {size: 8, page: 1};
         const skip: number = (page - 1) * size;
 
-        const courses = await courseRepository.findCoursesByCategory(String(category), size, skip);
+        const {courses, counts} = await courseRepository.findCoursesByCategory(String(category), size, skip);
 
-        const apiResponse: ApiResponse<{ courses: CourseResponse[] }> = {
+        const apiResponse: ApiResponse<CourseResponse[]> = {
             status: HttpStatus.SUCCESS,
-            data: {
-                courses: courses.map(toCourseResponse)
-            }
+            data: courses.map(toCourseResponse),
+            pageInfo: toPageResponse(size, page, counts),
+
         };
         return res.status(200).json(apiResponse);
     }
@@ -115,7 +116,7 @@ export const enrollCourse = asyncWrapper(
 
         const course = await courseRepository.findCourseById(courseId);
         if (!course) {
-            const errorResponse: ErrorResponse = {
+            const errorResponse: ApiResponse<null> = {
                 status: HttpStatus.FAIL,
                 message: `Course with id ${courseId} not found`,
                 data: null
@@ -126,7 +127,7 @@ export const enrollCourse = asyncWrapper(
 
         const connectUser = JSON.parse(JSON.stringify(req.connectedUser));
         if (await enrollmentRepository.findEnrolledCourseByStudentIdAndCourseId(connectUser.id, courseId)) {
-            const errorResponse: ErrorResponse = {
+            const errorResponse: ApiResponse<null> = {
                 status: HttpStatus.FAIL,
                 message: "You already enrolled this course",
                 data: null
@@ -139,7 +140,7 @@ export const enrollCourse = asyncWrapper(
 
         const savedCode = await codeRepository.findCode(enrollCode)
         if (!savedCode) {
-            const errorResponse: ErrorResponse = {
+            const errorResponse: ApiResponse<null> = {
                 status: HttpStatus.FAIL,
                 message: `The code ${enrollCode} that you've entered is incorrect`,
                 data: null
@@ -149,7 +150,7 @@ export const enrollCourse = asyncWrapper(
         }
 
         if (savedCode.instructorId !== course.instructorId) {
-            const errorResponse: ErrorResponse = {
+            const errorResponse: ApiResponse<null> = {
                 status: HttpStatus.FAIL,
                 message: "Invalid enrollment code for this course",
                 data: null
@@ -159,7 +160,7 @@ export const enrollCourse = asyncWrapper(
         }
 
         if (Date.now() > savedCode.expireAt.getTime() || !savedCode.isValid) {
-            const errorResponse: ErrorResponse = {
+            const errorResponse: ApiResponse<null> = {
                 status: HttpStatus.FAIL,
                 message: `Code ${enrollCode} is not valid`,
                 data: null
@@ -174,7 +175,7 @@ export const enrollCourse = asyncWrapper(
             enrollmentDate: new Date(),
         };
 
-        const enrolledCourse = await enrollmentRepository.createEnrollment(enrollRequest);
+        await enrollmentRepository.createEnrollment(enrollRequest);
 
         savedCode.isValid = false;
         savedCode.isUsed = true;
@@ -184,13 +185,9 @@ export const enrollCourse = asyncWrapper(
 
         await codeRepository.updateCode(savedCode);
 
-        const apiResponse: ApiResponse<{ course: CourseResponse }> = {
+        const apiResponse: ApiResponse<null> = {
             status: HttpStatus.SUCCESS,
-            data: {
-                course: {
-                    id: enrolledCourse.courseId
-                }
-            }
+            data: null
         };
         return res.status(201).json(apiResponse);
     }

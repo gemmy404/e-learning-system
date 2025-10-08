@@ -2,7 +2,6 @@ import {asyncWrapper} from '../middlwares/asyncWrapper';
 import {NextFunction, Request, Response as ExpressResponse} from 'express';
 import {CategoryRepository} from '../repositories/category.repository';
 import {Category} from '@prisma/client';
-import {ErrorResponse} from '../dto/error.response';
 import {HttpStatus} from '../utils/httpStatusText';
 import {AppError} from '../utils/appError';
 import {ApiResponse} from '../dto/api.response';
@@ -18,11 +17,10 @@ export const getAllCategories = asyncWrapper(
         const skip: number = (page - 1) * size;
         const categories = await categoryRepository.findAllCategories(size, skip);
 
-        const apiResponse: ApiResponse<{ categories: CategoryResponse[] }> = {
+        const apiResponse: ApiResponse<CategoryResponse[]> = {
             status: HttpStatus.SUCCESS,
-            data: {
-                categories: categories.map(toCategoryResponse)
-            }
+            data: categories.map(toCategoryResponse),
+
         };
         return res.status(200).json(apiResponse);
     }
@@ -34,7 +32,7 @@ export const getCategoryByName = asyncWrapper(
 
         const category: Category | null = await categoryRepository.findCategoryByName(String(categoryName));
         if (!category) {
-            const errorResponse: ErrorResponse = {
+            const errorResponse: ApiResponse<null> = {
                 status: HttpStatus.FAIL,
                 message: `Category with name ${categoryName} not found`,
                 data: null
@@ -43,13 +41,11 @@ export const getCategoryByName = asyncWrapper(
             return next(error);
         }
 
-        const apiResponse: ApiResponse<{ category: CategoryResponse }> = {
+        const apiResponse: ApiResponse<CategoryResponse> = {
             status: HttpStatus.SUCCESS,
             data: {
-                category: {
-                    name: category.name
-                }
-            }
+                name: category.name
+            },
         };
         return res.status(200).json(apiResponse);
     }

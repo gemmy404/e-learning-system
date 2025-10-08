@@ -1,10 +1,10 @@
-import {ErrorResponse} from "../dto/error.response.ts";
 import {HttpStatus} from "../utils/httpStatusText.ts";
 import {AppError} from "../utils/appError.ts";
-import type {Request, Response as ExpressResponse, NextFunction} from 'express';
+import type {NextFunction, Request, Response as ExpressResponse} from 'express';
+import {ApiResponse} from "../dto/api.response.ts";
 
 export const errorHandler = (err: AppError, req: Request, res: ExpressResponse, next: NextFunction) => {
-    const errorResponse: ErrorResponse = {
+    const errorResponse: ApiResponse<null> = {
         status: HttpStatus.ERROR,
         message: err.message,
     }

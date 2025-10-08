@@ -2,7 +2,6 @@ import {CourseRepository} from '../repositories/course.repository';
 import {CategoryRepository} from '../repositories/category.repository';
 import {asyncWrapper} from '../middlwares/asyncWrapper';
 import {NextFunction, Request, Response as ExpressResponse} from 'express';
-import {ErrorResponse} from '../dto/error.response';
 import {HttpStatus} from '../utils/httpStatusText';
 import {AppError} from '../utils/appError';
 import {ApiResponse} from '../dto/api.response';
@@ -13,6 +12,7 @@ import {CodeRepository} from '../repositories/code.repository';
 import {CodeResponse} from '../dto/code.response';
 import {toCodeResponse} from '../mapper/code.mapper';
 import {prisma} from '../config/dbConnection';
+import {toPageResponse} from "../mapper/pagination.mapper.ts";
 
 const courseRepository = new CourseRepository(prisma);
 const categoryRepository = new CategoryRepository(prisma);
@@ -28,14 +28,10 @@ export const createCourse = asyncWrapper(
         req.body.categoryId = categoryId;
         req.body.instructorId = JSON.parse((JSON.stringify(req.connectedUser))).id;
 
-        const course = await courseRepository.createCourse(toCourse(req.body, req.file));
-        const apiResponse: ApiResponse<{ course: CourseResponse }> = {
+        await courseRepository.createCourse(toCourse(req.body, req.file));
+        const apiResponse: ApiResponse<null> = {
             status: HttpStatus.SUCCESS,
-            data: {
-                course: {
-                    id: course.id
-                }
-            }
+            data: null
         };
         return res.status(201).json(apiResponse)
     }
@@ -48,13 +44,12 @@ export const getMyCreatedCourses = asyncWrapper(
 
         const connectedUser = JSON.parse((JSON.stringify(req.connectedUser)));
 
-        const courses = await courseRepository.findAllCourses(size, skip, connectedUser.id);
+        const {courses, counts} = await courseRepository.findAllCourses(size, skip, connectedUser.id);
 
-        const apiResponse: ApiResponse<{ courses: CourseResponse[] }> = {
+        const apiResponse: ApiResponse<CourseResponse[]> = {
             status: HttpStatus.SUCCESS,
-            data: {
-                courses: courses.map(toCourseResponse)
-            }
+            data: courses.map(toCourseResponse),
+            pageInfo: toPageResponse(size, page, counts)
         };
         return res.status(200).json(apiResponse);
     }
@@ -66,7 +61,7 @@ export const updateCourse = asyncWrapper(
 
         const savedCourse = await courseRepository.findCourseById(courseId);
         if (!savedCourse) {
-            const errorResponse: ErrorResponse = {
+            const errorResponse: ApiResponse<null> = {
                 status: HttpStatus.FAIL,
                 message: `Course with id ${courseId} not found`,
                 data: null
@@ -77,7 +72,7 @@ export const updateCourse = asyncWrapper(
 
         const connectedUserId: string = JSON.parse((JSON.stringify(req.connectedUser))).id
         if (connectedUserId !== savedCourse.instructorId) {
-            const errorResponse: ErrorResponse = {
+            const errorResponse: ApiResponse<null> = {
                 status: HttpStatus.FAIL,
                 message: "You are not authorized to perform this operation",
                 data: null
@@ -89,9 +84,9 @@ export const updateCourse = asyncWrapper(
         const updatedCourse = await courseRepository
             .updateCourse(courseId, toCourse(req.body, req.file));
 
-        const apiResponse: ApiResponse<{ course: CourseResponse }> = {
+        const apiResponse: ApiResponse<CourseResponse> = {
             status: HttpStatus.SUCCESS,
-            data: {course: toCourseResponse(updatedCourse)}
+            data: toCourseResponse(updatedCourse),
         }
         return res.status(200).json(apiResponse);
     }
@@ -103,7 +98,7 @@ export const deleteCourse = asyncWrapper(
 
         const savedCourse = await courseRepository.findCourseById(courseId);
         if (!savedCourse) {
-            const errorResponse: ErrorResponse = {
+            const errorResponse: ApiResponse<null> = {
                 status: HttpStatus.FAIL,
                 message: `Course with id ${courseId} not found`,
                 data: null
@@ -114,7 +109,7 @@ export const deleteCourse = asyncWrapper(
 
         const connectedUserId: string = JSON.parse((JSON.stringify(req.connectedUser))).id
         if (connectedUserId !== savedCourse.instructorId) {
-            const errorResponse: ErrorResponse = {
+            const errorResponse: ApiResponse<null> = {
                 status: HttpStatus.FAIL,
                 message: "You are not authorized to perform this operation",
                 data: null
@@ -125,13 +120,9 @@ export const deleteCourse = asyncWrapper(
 
         await courseRepository.deleteCourse(courseId);
 
-        const apiResponse: ApiResponse<{ course: CourseResponse }> = {
+        const apiResponse: ApiResponse<null> = {
             status: HttpStatus.SUCCESS,
-            data: {
-                course: {
-                    id: courseId
-                }
-            }
+            data: null
         };
         return res.status(200).json(apiResponse);
     }
@@ -154,11 +145,9 @@ export const generateEnrollmentCodes = asyncWrapper(
 
         const result = await codeRepository.createCodes(codes);
 
-        const apiResponse: ApiResponse<{ codes: CodeResponse[] }> = {
+        const apiResponse: ApiResponse<CodeResponse[]> = {
             status: HttpStatus.SUCCESS,
-            data: {
-                codes: result.map(toCodeResponse)
-            }
+            data: result.map(toCodeResponse),
         }
         return res.status(201).json(apiResponse);
     }
@@ -171,13 +160,12 @@ export const getAllCodes = asyncWrapper(
         const {size, page} = req.pageInfo || {size: 8, page: 1};
         const skip: number = (page - 1) * size;
 
-        const codes = await codeRepository.findAllCodes(connectedUser.id, size, skip);
+        const {codes, counts} = await codeRepository.findAllCodes(connectedUser.id, size, skip);
 
-        const apiResponse: ApiResponse<{ codes: CodeResponse[] }> = {
+        const apiResponse: ApiResponse<CodeResponse[]> = {
             status: HttpStatus.SUCCESS,
-            data: {
-                codes: codes.map(toCodeResponse)
-            }
+            data: codes.map(toCodeResponse),
+            pageInfo: toPageResponse(size, page, counts),
         };
         return res.status(200).json(apiResponse);
     }
@@ -189,9 +177,9 @@ export const deactivateExpiredCodes = asyncWrapper(
 
         const result = await codeRepository.deactivateCode(connectedUser.id)
 
-        const apiResponse: ApiResponse<{ count: number }> = {
+        const apiResponse: ApiResponse<number> = {
             status: HttpStatus.SUCCESS,
-            data: result
+            data: result.count
         };
         return res.status(200).json(apiResponse);
     }

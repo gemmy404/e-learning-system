@@ -1,13 +1,13 @@
 import {NextFunction, Request, Response as ExpressResponse} from 'express';
 import {validationResult} from "express-validator";
-import {ErrorResponse} from "../dto/error.response.ts";
 import {HttpStatus} from "../utils/httpStatusText.ts";
 import {AppError} from "../utils/appError.ts";
+import {ApiResponse} from "../dto/api.response.ts";
 
 export const checkValidationErrors = (req: Request, res: ExpressResponse, next: NextFunction) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-        const errorResponse: ErrorResponse = {
+        const errorResponse: ApiResponse<null> = {
             status: HttpStatus.FAIL,
             validationErrors: errors.array(),
             data: null,

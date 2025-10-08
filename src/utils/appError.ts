@@ -1,18 +1,18 @@
-import {ErrorResponse} from "../dto/error.response.ts";
+import {ApiResponse} from "../dto/api.response.ts";
 
 export class AppError extends Error {
 
-    private _errorResponse: ErrorResponse;
+    private _errorResponse: ApiResponse<null>;
     private _status: number;
 
-    constructor(errorResponse: ErrorResponse, status: number) {
+    constructor(errorResponse: ApiResponse<null>, status: number) {
         super();
         this._errorResponse = errorResponse;
         this._status = status;
     }
 
 
-    get errorResponse(): ErrorResponse {
+    get errorResponse(): ApiResponse<null> {
         return this._errorResponse;
     }
 

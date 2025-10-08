@@ -2,13 +2,13 @@ import {CourseRepository} from '../repositories/course.repository';
 import {asyncWrapper} from '../middlwares/asyncWrapper';
 import {NextFunction, Request, Response as ExpressResponse} from 'express';
 import {SectionRepository} from '../repositories/section.repository';
-import {ErrorResponse} from "../dto/error.response.ts";
 import {HttpStatus} from "../utils/httpStatusText.ts";
 import {AppError} from "../utils/appError.ts";
 import {ApiResponse} from "../dto/api.response.ts";
 import {SectionResponse} from "../dto/section.response.ts";
 import {toSectionResponse} from "../mapper/section.mapper.ts";
 import {prisma} from "../config/dbConnection.ts";
+import {toPageResponse} from "../mapper/pagination.mapper.ts";
 
 const courseRepository = new CourseRepository(prisma);
 const sectionRepository = new SectionRepository(prisma);
@@ -20,7 +20,7 @@ export const createSection = asyncWrapper(
 
         const savedCourse = await courseRepository.findCourseById(courseId);
         if (!savedCourse) {
-            const errorResponse: ErrorResponse = {
+            const errorResponse: ApiResponse<null> = {
                 status: HttpStatus.FAIL,
                 message: `Course with id ${courseId} not found`,
                 data: null
@@ -31,7 +31,7 @@ export const createSection = asyncWrapper(
 
         const connectedUser = JSON.parse(JSON.stringify(req.connectedUser));
         if (connectedUser.id !== savedCourse.instructorId) {
-            const errorResponse: ErrorResponse = {
+            const errorResponse: ApiResponse<null> = {
                 status: HttpStatus.FAIL,
                 message: "You are not authorized to perform this operation",
                 data: null
@@ -48,11 +48,9 @@ export const createSection = asyncWrapper(
 
         const createdSection = await sectionRepository.createSection(sectionRequest);
 
-        const apiResponse: ApiResponse<{ section: SectionResponse }> = {
+        const apiResponse: ApiResponse<SectionResponse> = {
             status: HttpStatus.SUCCESS,
-            data: {
-                section: toSectionResponse(createdSection)
-            }
+            data: toSectionResponse(createdSection),
         };
         return res.status(201).json(apiResponse);
     }
@@ -67,7 +65,7 @@ export const getAllSections = asyncWrapper(
 
         const savedCourse = await courseRepository.findCourseById(courseId);
         if (!savedCourse) {
-            const errorResponse: ErrorResponse = {
+            const errorResponse: ApiResponse<null> = {
                 status: HttpStatus.FAIL,
                 message: `Course with id ${courseId} not found`,
                 data: null
@@ -78,7 +76,7 @@ export const getAllSections = asyncWrapper(
 
         const connectedUser = JSON.parse(JSON.stringify(req.connectedUser));
         if (connectedUser.id !== savedCourse.instructorId) {
-            const errorResponse: ErrorResponse = {
+            const errorResponse: ApiResponse<null> = {
                 status: HttpStatus.FAIL,
                 message: "You are not authorized to perform this operation",
                 data: null
@@ -87,13 +85,12 @@ export const getAllSections = asyncWrapper(
             return next(error);
         }
 
-        const sections = await sectionRepository.findAllSectionsByCourseId(size, skip, courseId);
+        const {sections, counts} = await sectionRepository.findAllSectionsByCourseId(size, skip, courseId);
 
-        const apiResponse: ApiResponse<{ sections: SectionResponse[] }> = {
+        const apiResponse: ApiResponse<SectionResponse[]> = {
             status: HttpStatus.SUCCESS,
-            data: {
-                sections: sections.map(toSectionResponse)
-            }
+            data: sections.map(toSectionResponse),
+            pageInfo: toPageResponse(size, page, counts),
         };
         return res.status(200).json(apiResponse);
     }
@@ -105,7 +102,7 @@ export const updateSection = asyncWrapper(
 
         const savedSection = await sectionRepository.findSectionById(sectionId);
         if (!savedSection) {
-            const errorResponse: ErrorResponse = {
+            const errorResponse: ApiResponse<null> = {
                 status: HttpStatus.FAIL,
                 message: `Section with id ${sectionId} not found`,
                 data: null
@@ -116,7 +113,7 @@ export const updateSection = asyncWrapper(
 
         const connectedUser = JSON.parse(JSON.stringify(req.connectedUser));
         if (connectedUser.id !== savedSection.course.instructorId) {
-            const errorResponse: ErrorResponse = {
+            const errorResponse: ApiResponse<null> = {
                 status: HttpStatus.FAIL,
                 message: "You are not authorized to perform this operation",
                 data: null
@@ -132,11 +129,9 @@ export const updateSection = asyncWrapper(
 
         const updatedSection = await sectionRepository.updateSection(section);
 
-        const apiResponse: ApiResponse<{ section: SectionResponse }> = {
+        const apiResponse: ApiResponse<SectionResponse> = {
             status: HttpStatus.SUCCESS,
-            data: {
-                section: toSectionResponse(updatedSection)
-            }
+            data: toSectionResponse(updatedSection),
         };
         return res.status(200).json(apiResponse);
     }
@@ -148,7 +143,7 @@ export const deleteSection = asyncWrapper(
 
         const savedSection = await sectionRepository.findSectionById(sectionId);
         if (!savedSection) {
-            const errorResponse: ErrorResponse = {
+            const errorResponse: ApiResponse<null> = {
                 status: HttpStatus.FAIL,
                 message: `Section with id ${sectionId} not found`,
                 data: null
@@ -159,7 +154,7 @@ export const deleteSection = asyncWrapper(
 
         const connectedUser = JSON.parse(JSON.stringify(req.connectedUser));
         if (connectedUser.id !== savedSection.course.instructorId) {
-            const errorResponse: ErrorResponse = {
+            const errorResponse: ApiResponse<null> = {
                 status: HttpStatus.FAIL,
                 message: "You are not authorized to perform this operation",
                 data: null
@@ -170,14 +165,9 @@ export const deleteSection = asyncWrapper(
 
         const deletedSection = await sectionRepository.deleteSection(sectionId);
 
-        const apiResponse: ApiResponse<{ section: SectionResponse }> = {
+        const apiResponse: ApiResponse<null> = {
             status: HttpStatus.SUCCESS,
-            data: {
-                section: {
-                    sectionName: deletedSection.name,
-                    orderIndex: deletedSection.orderIndex
-                }
-            }
+            data: null,
         };
         return res.status(200).json(apiResponse);
     }

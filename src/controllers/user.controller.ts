@@ -1,7 +1,6 @@
 import {NextFunction, Request, Response as ExpressResponse} from "express";
 import {asyncWrapper} from "../middlwares/asyncWrapper.ts";
 import {UserRepository} from "../repositories/user.repository.ts";
-import {ErrorResponse} from "../dto/error.response.ts";
 import {HttpStatus} from "../utils/httpStatusText.ts";
 import {AppError} from "../utils/appError.ts";
 import {ApiResponse} from "../dto/api.response.ts";
@@ -12,6 +11,7 @@ import {prisma} from "../config/dbConnection.ts";
 import {CourseResponse} from "../dto/course.response.ts";
 import {toCourseResponse} from "../mapper/course.mapper.ts";
 import {EnrollmentRepository} from "../repositories/enrollment.repository.ts";
+import {toPageResponse} from "../mapper/pagination.mapper.ts";
 
 const userRepository: UserRepository = new UserRepository(prisma);
 const enrollmentRepository = new EnrollmentRepository(prisma);
@@ -22,7 +22,7 @@ export const getUserProfile = asyncWrapper(
 
         const savedUser = await userRepository.findUserByEmail(connectedUser.email);
         if (!savedUser) {
-            const errorResponse: ErrorResponse = {
+            const errorResponse: ApiResponse<null> = {
                 status: HttpStatus.FAIL,
                 message: "User not found",
                 data: null
@@ -31,11 +31,9 @@ export const getUserProfile = asyncWrapper(
             return next(error);
         }
 
-        const apiResponse: ApiResponse<{ user: UserResponse }> = {
+        const apiResponse: ApiResponse<UserResponse> = {
             status: HttpStatus.SUCCESS,
-            data: {
-                user: toUserResponse(savedUser)
-            }
+            data: toUserResponse(savedUser)
         };
         return res.status(200).json(apiResponse);
     }
@@ -52,7 +50,7 @@ export const updateUserProfile = asyncWrapper( // need to handle request dto, to
 
         const savedUser = await userRepository.findUserById(connectedUser.id);
         if (!savedUser) {
-            const errorResponse: ErrorResponse = {
+            const errorResponse: ApiResponse<null> = {
                 status: HttpStatus.FAIL,
                 message: "User not found",
                 data: null
@@ -63,11 +61,10 @@ export const updateUserProfile = asyncWrapper( // need to handle request dto, to
 
         const updatedUser = await userRepository.updateUserProfile(connectedUser.id, profile);
 
-        const apiResponse: ApiResponse<{ user: UserResponse }> = {
+        const apiResponse: ApiResponse<UserResponse> = {
             status: HttpStatus.SUCCESS,
-            data: {
-                user: toUserResponse(updatedUser)
-            }
+            data: toUserResponse(updatedUser),
+
         };
         return res.status(200).json(apiResponse);
     }
@@ -80,7 +77,7 @@ export const changePassword = asyncWrapper(
 
         const savedUser = await userRepository.findUserByEmail(connectedUser.email);
         if (!savedUser) {
-            const errorResponse: ErrorResponse = {
+            const errorResponse: ApiResponse<null> = {
                 status: HttpStatus.FAIL,
                 message: "User not found",
                 data: null
@@ -91,7 +88,7 @@ export const changePassword = asyncWrapper(
 
         const matchedPassword = await bcrypt.compare(oldPassword, savedUser.password);
         if (!matchedPassword) {
-            const errorResponse: ErrorResponse = {
+            const errorResponse: ApiResponse<null> = {
                 status: HttpStatus.FAIL,
                 message: "The old password that you've entered is incorrect",
                 data: null
@@ -103,11 +100,10 @@ export const changePassword = asyncWrapper(
         const hashedNewPassword = await bcrypt.hash(newPassword, 10);
         const updatedUser = await userRepository.changeUserPassword(connectedUser.id, hashedNewPassword);
 
-        const apiResponse: ApiResponse<{ user: UserResponse }> = {
+        const apiResponse: ApiResponse<null> = {
             status: HttpStatus.SUCCESS,
-            data: {
-                user: toUserResponse(updatedUser)
-            }
+            data: null,
+
         };
         return res.status(200).json(apiResponse);
     }
@@ -120,15 +116,16 @@ export const getMyEnrollmentCourses = asyncWrapper(
 
         const connectedUser = JSON.parse(JSON.stringify(req.connectedUser));
 
-        const courses = (await enrollmentRepository
-            .findAllEnrolledCourseByStudentId(size, skip, connectedUser.id))
+        const {enrolledCourses, counts} = await enrollmentRepository
+            .findAllEnrolledCourseByStudentId(size, skip, connectedUser.id);
+
+        const courses = enrolledCourses
             .map(enrollments => enrollments.course);
 
-        const apiResponse: ApiResponse<{ courses: CourseResponse[] }> = {
+        const apiResponse: ApiResponse<CourseResponse[]> = {
             status: HttpStatus.SUCCESS,
-            data: {
-                courses: courses.map(toCourseResponse)
-            }
+            data: courses.map(toCourseResponse),
+            pageInfo: toPageResponse(size, page, counts),
         };
         res.status(200).json(apiResponse);
     }

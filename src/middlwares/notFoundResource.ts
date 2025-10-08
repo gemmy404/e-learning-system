@@ -1,9 +1,9 @@
-import {ErrorResponse} from "../dto/error.response.ts";
 import {HttpStatus} from "../utils/httpStatusText.ts";
-import {Request, Response as ExpressResponse, NextFunction} from "express";
+import {NextFunction, Request, Response as ExpressResponse} from "express";
+import {ApiResponse} from "../dto/api.response.ts";
 
 export const notFoundResource = (req: Request, res: ExpressResponse, next: NextFunction) => {
-    const errorResponse: ErrorResponse = {
+    const errorResponse: ApiResponse<null> = {
         status: HttpStatus.ERROR,
         message: `This resource '${req.path}' not found`
     }

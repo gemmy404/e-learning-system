@@ -1,7 +1,7 @@
 import multer, {Multer} from 'multer';
-import {ErrorResponse} from "../dto/error.response.ts";
 import {HttpStatus} from "./httpStatusText.ts";
 import {AppError} from "./appError.ts";
+import {ApiResponse} from "../dto/api.response.ts";
 
 export const upload = (type: string): Multer => {
     const diskStorage = multer.diskStorage({
@@ -23,7 +23,7 @@ export const upload = (type: string): Multer => {
         if (fileType === 'image' || fileType === 'video' || pdf === 'pdf') {
             return cb(null, true);
         }
-        const errorResponse: ErrorResponse = {
+        const errorResponse: ApiResponse<null> = {
             status: HttpStatus.FAIL,
             message: "File must be an image, video, or pdf",
             data: null

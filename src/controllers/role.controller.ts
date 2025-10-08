@@ -1,7 +1,6 @@
 import {asyncWrapper} from "../middlwares/asyncWrapper.ts";
 import {NextFunction, Request, Response as ExpressResponse} from "express";
 import {RoleRepository} from "../repositories/role.repository.ts";
-import {ErrorResponse} from "../dto/error.response.ts";
 import {HttpStatus} from "../utils/httpStatusText.ts";
 import {AppError} from "../utils/appError.ts";
 import {ApiResponse} from "../dto/api.response.ts";
@@ -9,6 +8,7 @@ import {prisma} from "../config/dbConnection.ts";
 import {UserRole} from "@prisma/client";
 import {RoleResponse} from "../dto/role.response.ts";
 import {toRoleResponse} from "../mapper/role.mapper.ts";
+import {toPageResponse} from "../mapper/pagination.mapper.ts";
 
 const roleRepository: RoleRepository = new RoleRepository(prisma);
 
@@ -17,7 +17,7 @@ export const createRole = asyncWrapper(
         const roleName = String(req.body.role).toUpperCase();
 
         if (!Object.values(UserRole).includes(roleName as UserRole)) {
-            const errorResponse: ErrorResponse = {
+            const errorResponse: ApiResponse<null> = {
                 status: HttpStatus.FAIL,
                 message: "User role does not exist in the collection",
                 data: null
@@ -27,7 +27,7 @@ export const createRole = asyncWrapper(
         }
 
         if ((await roleRepository.findRoleByName(roleName as UserRole))) {
-            const errorResponse: ErrorResponse = {
+            const errorResponse: ApiResponse<null> = {
                 status: HttpStatus.FAIL,
                 message: `Role ${roleName} already exists`,
                 data: null
@@ -53,13 +53,12 @@ export const getAllRoles = asyncWrapper(
         const {size, page} = req.pageInfo || {size: 8, page: 1};
         const skip: number = (page - 1) * size;
 
-        const roles = await roleRepository.findAllRoles(size, skip);
+        const {roles, counts} = await roleRepository.findAllRoles(size, skip);
 
-        const apiResponse: ApiResponse<{ roles: RoleResponse[] }> = {
+        const apiResponse: ApiResponse<RoleResponse[]> = {
             status: HttpStatus.SUCCESS,
-            data: {
-                roles: roles.map(toRoleResponse)
-            }
+            data: roles.map(toRoleResponse),
+            pageInfo: toPageResponse(size, page, counts)
         };
         return res.status(200).send(apiResponse);
     }
