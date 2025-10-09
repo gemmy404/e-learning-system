@@ -1,0 +1,20 @@
+import {prisma} from "../config/dbConnection.ts";
+import {CourseRepository} from "./course.repository.ts";
+import {CodeRepository} from "./code.repository.ts";
+import {UserRepository} from "./user.repository.ts";
+import {RoleRepository} from "./role.repository.ts";
+import {CategoryRepository} from "./category.repository.ts";
+import {SectionRepository} from "./section.repository.ts";
+import {LessonRepository} from "./lesson.repository.ts";
+import {ResetPasswordCodeRepository} from "./reset.password.repository.ts";
+import {EnrollmentRepository} from "./enrollment.repository.ts";
+
+export const userRepository = new UserRepository(prisma);
+export const resetPasswordCodeRepository = new ResetPasswordCodeRepository(prisma);
+export const roleRepository = new RoleRepository(prisma);
+export const courseRepository = new CourseRepository(prisma);
+export const categoryRepository = new CategoryRepository(prisma);
+export const sectionRepository = new SectionRepository(prisma);
+export const lessonRepository = new LessonRepository(prisma);
+export const codeRepository = new CodeRepository(prisma);
+export const enrollmentRepository = new EnrollmentRepository(prisma);
