@@ -1,17 +1,12 @@
-import {CourseRepository} from '../repositories/course.repository';
 import {asyncWrapper} from '../middlwares/asyncWrapper';
 import {NextFunction, Request, Response as ExpressResponse} from 'express';
-import {SectionRepository} from '../repositories/section.repository';
+import {courseRepository, sectionRepository} from '../repositories/index.repositories.ts';
 import {HttpStatus} from "../utils/httpStatusText.ts";
 import {AppError} from "../utils/appError.ts";
 import {ApiResponse} from "../dto/api.response.ts";
 import {SectionResponse} from "../dto/section.response.ts";
 import {toSectionResponse} from "../mapper/section.mapper.ts";
-import {prisma} from "../config/dbConnection.ts";
 import {toPageResponse} from "../mapper/pagination.mapper.ts";
-
-const courseRepository = new CourseRepository(prisma);
-const sectionRepository = new SectionRepository(prisma);
 
 export const createSection = asyncWrapper(
     async (req: Request, res: ExpressResponse, next: NextFunction) => {

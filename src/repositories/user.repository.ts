@@ -3,6 +3,7 @@ import {RoleRepository} from "./role.repository.ts";
 import {HttpStatus} from "../utils/httpStatusText.ts";
 import {AppError} from "../utils/appError.ts";
 import {ApiResponse} from "../dto/api.response.ts";
+import {roleRepository} from "./index.repositories.ts";
 
 export class UserRepository {
     private prisma: PrismaClient;
@@ -10,7 +11,7 @@ export class UserRepository {
 
     constructor(prismaClient: PrismaClient) {
         this.prisma = prismaClient;
-        this.roleRepository = new RoleRepository(this.prisma);
+        this.roleRepository = roleRepository
     }
 
     async createUser(user: User) {

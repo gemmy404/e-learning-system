@@ -1,5 +1,3 @@
-import {CourseRepository} from '../repositories/course.repository';
-import {CategoryRepository} from '../repositories/category.repository';
 import {asyncWrapper} from '../middlwares/asyncWrapper';
 import {NextFunction, Request, Response as ExpressResponse} from 'express';
 import {HttpStatus} from '../utils/httpStatusText';
@@ -8,15 +6,10 @@ import {ApiResponse} from '../dto/api.response';
 import {CourseResponse} from '../dto/course.response';
 import {toCourse, toCourseResponse} from '../mapper/course.mapper';
 import {generateEnrollmentsCodes} from '../utils/generateCodes.ts';
-import {CodeRepository} from '../repositories/code.repository';
+import {categoryRepository, codeRepository, courseRepository} from '../repositories/index.repositories.ts';
 import {CodeResponse} from '../dto/code.response';
 import {toCodeResponse} from '../mapper/code.mapper';
-import {prisma} from '../config/dbConnection';
 import {toPageResponse} from "../mapper/pagination.mapper.ts";
-
-const courseRepository = new CourseRepository(prisma);
-const categoryRepository = new CategoryRepository(prisma);
-const codeRepository = new CodeRepository(prisma);
 
 export const createCourse = asyncWrapper(
     async (req: Request, res: ExpressResponse, next: NextFunction) => {

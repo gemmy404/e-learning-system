@@ -2,18 +2,11 @@ import {NextFunction, Request, Response as ExpressResponse} from 'express';
 import {asyncWrapper} from '../middlwares/asyncWrapper';
 import {AppError} from '../utils/appError';
 import {HttpStatus} from '../utils/httpStatusText';
-import {CourseRepository} from '../repositories/course.repository';
 import {CourseResponse} from '../dto/course.response';
 import {ApiResponse} from '../dto/api.response';
 import {toCourseResponse} from '../mapper/course.mapper';
-import {prisma} from "../config/dbConnection.ts";
-import {EnrollmentRepository} from "../repositories/enrollment.repository.ts";
-import {CodeRepository} from "../repositories/code.repository.ts";
+import {codeRepository, courseRepository, enrollmentRepository} from "../repositories/index.repositories.ts";
 import {toPageResponse} from "../mapper/pagination.mapper.ts";
-
-const courseRepository = new CourseRepository(prisma);
-const enrollmentRepository = new EnrollmentRepository(prisma);
-const codeRepository = new CodeRepository(prisma);
 
 export const getAllCourses = asyncWrapper(
     async (req: Request, res: ExpressResponse, next: NextFunction) => {

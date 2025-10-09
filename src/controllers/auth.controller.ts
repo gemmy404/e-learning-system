@@ -1,23 +1,16 @@
 import bcrypt from "bcryptjs";
-import {UserRepository} from "../repositories/user.repository.ts";
 import {generateJwt} from "../utils/generateJwt.ts";
 import {asyncWrapper} from "../middlwares/asyncWrapper.ts";
 import {LoginResponse} from "../dto/login.response.ts";
 import {HttpStatus} from "../utils/httpStatusText.ts";
 import {AppError} from "../utils/appError.ts";
 import {RegisterResponse} from "../dto/register.response.ts";
-import {RoleRepository} from "../repositories/role.repository.ts";
 import type {NextFunction, Request, Response as ExpressResponse} from 'express';
 import {ApiResponse} from "../dto/api.response.ts";
-import {prisma} from "../config/dbConnection.ts";
 import {generateResetPasswordCode} from "../utils/generateCodes.ts";
-import {ResetPasswordCodeRepository} from "../repositories/reset.password.repository.ts";
+import {resetPasswordCodeRepository, roleRepository, userRepository} from "../repositories/index.repositories.ts";
 import jwt, {JwtPayload} from "jsonwebtoken";
 import {emailSender} from "../utils/emailSender.ts";
-
-const userRepository = new UserRepository(prisma);
-const roleRepository = new RoleRepository(prisma);
-const resetPasswordCodeRepository = new ResetPasswordCodeRepository(prisma);
 
 export const register = asyncWrapper(
     async (req: Request, res: ExpressResponse, next: NextFunction) => {

@@ -1,16 +1,13 @@
 import {asyncWrapper} from "../middlwares/asyncWrapper.ts";
 import {NextFunction, Request, Response as ExpressResponse} from "express";
-import {RoleRepository} from "../repositories/role.repository.ts";
+import {roleRepository} from "../repositories/index.repositories.ts";
 import {HttpStatus} from "../utils/httpStatusText.ts";
 import {AppError} from "../utils/appError.ts";
 import {ApiResponse} from "../dto/api.response.ts";
-import {prisma} from "../config/dbConnection.ts";
 import {UserRole} from "@prisma/client";
 import {RoleResponse} from "../dto/role.response.ts";
 import {toRoleResponse} from "../mapper/role.mapper.ts";
 import {toPageResponse} from "../mapper/pagination.mapper.ts";
-
-const roleRepository: RoleRepository = new RoleRepository(prisma);
 
 export const createRole = asyncWrapper(
     async (req: Request, res: ExpressResponse, next: NextFunction) => {

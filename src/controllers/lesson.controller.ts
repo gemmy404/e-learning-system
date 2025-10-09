@@ -1,18 +1,13 @@
-import {LessonRepository} from "../repositories/lesson.repository.ts";
-import {prisma} from "../config/dbConnection.ts";
 import {asyncWrapper} from "../middlwares/asyncWrapper.ts";
 import {NextFunction, Request, Response as ExpressResponse} from "express";
 import {AppError} from "../utils/appError.ts";
-import {SectionRepository} from "../repositories/section.repository.ts";
 import {HttpStatus} from "../utils/httpStatusText.ts";
 import {ApiResponse} from "../dto/api.response.ts";
 import {ContentType} from "@prisma/client";
 import {toLesson, toLessonResponse} from "../mapper/lesson.mapper.ts";
 import {LessonResponse} from "../dto/lesson.response.ts";
 import {toPageResponse} from "../mapper/pagination.mapper.ts";
-
-const lessonRepository = new LessonRepository(prisma);
-const sectionRepository = new SectionRepository(prisma);
+import {lessonRepository, sectionRepository} from "../repositories/index.repositories.ts";
 
 export const createLesson = asyncWrapper(
     async (req: Request, res: ExpressResponse, next: NextFunction) => {

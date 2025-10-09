@@ -1,15 +1,12 @@
 import {asyncWrapper} from '../middlwares/asyncWrapper';
 import {NextFunction, Request, Response as ExpressResponse} from 'express';
-import {CategoryRepository} from '../repositories/category.repository';
+import {categoryRepository} from '../repositories/index.repositories.ts';
 import {Category} from '@prisma/client';
 import {HttpStatus} from '../utils/httpStatusText';
 import {AppError} from '../utils/appError';
 import {ApiResponse} from '../dto/api.response';
 import {CategoryResponse} from '../dto/category.response';
 import {toCategoryResponse} from '../mapper/category.mapper';
-import {prisma} from '../config/dbConnection';
-
-const categoryRepository: CategoryRepository = new CategoryRepository(prisma);
 
 export const getAllCategories = asyncWrapper(
     async (req: Request, res: ExpressResponse, next: NextFunction) => {

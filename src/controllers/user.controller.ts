@@ -1,20 +1,15 @@
 import {NextFunction, Request, Response as ExpressResponse} from "express";
 import {asyncWrapper} from "../middlwares/asyncWrapper.ts";
-import {UserRepository} from "../repositories/user.repository.ts";
 import {HttpStatus} from "../utils/httpStatusText.ts";
 import {AppError} from "../utils/appError.ts";
 import {ApiResponse} from "../dto/api.response.ts";
 import {UserResponse} from "../dto/user.response.ts";
 import {toUserResponse} from "../mapper/user.mapper.ts";
 import bcrypt from "bcryptjs";
-import {prisma} from "../config/dbConnection.ts";
 import {CourseResponse} from "../dto/course.response.ts";
 import {toCourseResponse} from "../mapper/course.mapper.ts";
-import {EnrollmentRepository} from "../repositories/enrollment.repository.ts";
+import {enrollmentRepository, userRepository} from "../repositories/index.repositories.ts";
 import {toPageResponse} from "../mapper/pagination.mapper.ts";
-
-const userRepository: UserRepository = new UserRepository(prisma);
-const enrollmentRepository = new EnrollmentRepository(prisma);
 
 export const getUserProfile = asyncWrapper(
     async (req: Request, res: ExpressResponse, next: NextFunction) => {

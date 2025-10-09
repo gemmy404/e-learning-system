@@ -1,5 +1,4 @@
 import {UserRole} from "@prisma/client";
-import {UserRepository} from "../repositories/user.repository.ts";
 import {asyncWrapper} from "../middlwares/asyncWrapper.ts";
 import {NextFunction, Request, Response as ExpressResponse} from "express";
 import {HttpStatus} from "../utils/httpStatusText.ts";
@@ -7,12 +6,8 @@ import {AppError} from "../utils/appError.ts";
 import {ApiResponse} from "../dto/api.response.ts";
 import {UserResponse} from "../dto/user.response.ts";
 import {toUserResponse} from "../mapper/user.mapper.ts";
-import {RoleRepository} from "../repositories/role.repository.ts";
-import {prisma} from "../config/dbConnection.ts";
+import {roleRepository, userRepository} from "../repositories/index.repositories.ts";
 import {toPageResponse} from "../mapper/pagination.mapper.ts";
-
-const userRepository: UserRepository = new UserRepository(prisma);
-const roleRepository: RoleRepository = new RoleRepository(prisma);
 
 export const getUsersByRole = asyncWrapper(
     async (req: Request, res: ExpressResponse, next: NextFunction) => {
